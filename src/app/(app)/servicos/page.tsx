@@ -2,7 +2,15 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireActorPage } from "@/server/auth";
 import { can } from "@/server/permissions";
-import { listServices } from "@/server/services/service.service";
+import {
+  listCategories,
+  listServices,
+} from "@/server/services/service.service";
+import {
+  DeactivateServiceButton,
+  EditServiceButton,
+  NewServiceButton,
+} from "./service-actions";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -22,7 +30,12 @@ export default async function ServicosPage() {
   const actor = await requireActorPage();
   if (!can(actor, "service:read")) redirect("/");
 
-  const services = await listServices(actor, { includeInactive: true });
+  const canWrite = can(actor, "service:write");
+
+  const [services, categories] = await Promise.all([
+    listServices(actor, { includeInactive: true }),
+    listCategories(actor),
+  ]);
   const active = services.filter((s) => s.isActive);
 
   const prices = new Set(active.map((s) => s.priceCents));
@@ -45,6 +58,11 @@ export default async function ServicosPage() {
       <PageHeader
         title="Serviços"
         subtitle={`${active.length} ${active.length === 1 ? "serviço ativo" : "serviços ativos"}`}
+        action={
+          canWrite && categories.length > 0 ? (
+            <NewServiceButton categories={categories} />
+          ) : undefined
+        }
       />
 
       {services.length === 0 ? (
@@ -103,6 +121,7 @@ export default async function ServicosPage() {
                 <Th align="right">Por hora</Th>
                 <Th align="right">Realizados</Th>
                 <Th>Estado</Th>
+                {canWrite && <Th align="right">Ações</Th>}
               </tr>
             </thead>
             <tbody>
@@ -150,6 +169,34 @@ export default async function ServicosPage() {
                       <Badge tone="neutral">Inativo</Badge>
                     )}
                   </Td>
+                  {canWrite && (
+                    <Td align="right">
+                      <span className="flex justify-end gap-1.5">
+                        <EditServiceButton
+                          service={{
+                            id: service.id,
+                            name: service.name,
+                            categoryId: service.categoryId,
+                            tagline: service.tagline,
+                            durationMin: service.durationMin,
+                            setupMin: service.setupMin,
+                            teardownMin: service.teardownMin,
+                            priceCents: service.priceCents,
+                            recommendedGapDays: service.recommendedGapDays,
+                            requiresPatchTest: service.requiresPatchTest,
+                            isActive: service.isActive,
+                          }}
+                          categories={categories}
+                        />
+                        {service.isActive && (
+                          <DeactivateServiceButton
+                            serviceId={service.id}
+                            name={service.name}
+                          />
+                        )}
+                      </span>
+                    </Td>
+                  )}
                 </tr>
               ))}
             </tbody>

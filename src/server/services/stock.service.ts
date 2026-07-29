@@ -180,3 +180,183 @@ export async function adjustStock(
 export async function lowStockMaterials(actor: Actor) {
   return listMaterials(actor, { lowOnly: true });
 }
+
+export interface MaterialInput {
+  name: string;
+  brand?: string | null;
+  category?: string | null;
+  unit: string;
+  quantityOnHand?: number;
+  minQuantity?: number;
+  reorderQuantity?: number;
+  costCents?: number;
+  sku?: string | null;
+}
+
+function validateMaterial(input: MaterialInput) {
+  const name = input.name?.trim();
+  if (!name) throw new ValidationError("Indique o nome do material.");
+
+  const unit = input.unit?.trim();
+  if (!unit) {
+    throw new ValidationError(
+      "Indique a unidade (un, ml, cartela, par…). É o que dá sentido às quantidades.",
+    );
+  }
+
+  for (const [label, value] of [
+    ["quantidade", input.quantityOnHand],
+    ["quantidade mínima", input.minQuantity],
+    ["quantidade de reposição", input.reorderQuantity],
+  ] as const) {
+    if (value != null && (!Number.isFinite(value) || value < 0)) {
+      throw new ValidationError(`A ${label} não pode ser negativa.`);
+    }
+  }
+
+  // Dinheiro é sempre Int em cêntimos (ADR-02).
+  if (
+    input.costCents != null &&
+    (!Number.isInteger(input.costCents) || input.costCents < 0)
+  ) {
+    throw new ValidationError(
+      "O custo tem de ser um valor inteiro em cêntimos (4,50 € = 450).",
+    );
+  }
+
+  return {
+    name,
+    brand: input.brand?.trim() || null,
+    category: input.category?.trim() || null,
+    unit_: unit,
+    quantityOnHand: input.quantityOnHand ?? 0,
+    minQuantity: input.minQuantity ?? 0,
+    reorderQuantity: input.reorderQuantity ?? 0,
+    costCents: input.costCents ?? 0,
+    sku: input.sku?.trim() || null,
+  };
+}
+
+/**
+ * Cria um material.
+ *
+ * A quantidade inicial entra como movimento, não como valor solto: assim o
+ * histórico começa a contar desde o primeiro dia e nunca há stock que
+ * apareceu do nada.
+ */
+export async function createMaterial(actor: Actor, input: MaterialInput) {
+  assertCan(actor, "inventory:write");
+
+  const data = validateMaterial(input);
+
+  const clash = await prisma.material.findFirst({
+    where: { unitId: actor.unitId, name: data.name, deletedAt: null },
+    select: { id: true },
+  });
+  if (clash) {
+    throw new ConflictError(
+      "MATERIAL_DUPLICATE",
+      `Já existe um material chamado "${data.name}".`,
+      { materialId: clash.id },
+    );
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const created = await tx.material.create({
+      data: { ...data, unitId: actor.unitId, lastCostCents: data.costCents },
+    });
+
+    if (data.quantityOnHand > 0) {
+      await tx.stockMovement.create({
+        data: {
+          unitId: actor.unitId,
+          materialId: created.id,
+          kind: "ADJUSTMENT",
+          quantity: data.quantityOnHand,
+          costCents: data.costCents,
+          note: "Quantidade inicial",
+          createdById: actor.userId,
+        },
+      });
+    }
+
+    await recordAudit(tx, actor, {
+      action: "CREATE",
+      entityType: "Material",
+      entityId: created.id,
+      after: created,
+    });
+
+    return created;
+  });
+}
+
+export async function updateMaterial(
+  actor: Actor,
+  materialId: string,
+  input: MaterialInput,
+) {
+  assertCan(actor, "inventory:write");
+
+  const before = await prisma.material.findFirst({
+    where: { unitId: actor.unitId, id: materialId, deletedAt: null },
+  });
+  if (!before) throw new NotFoundError("Material");
+
+  const data = validateMaterial(input);
+
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.material.update({
+      where: { id: materialId },
+      data: {
+        name: data.name,
+        brand: data.brand,
+        category: data.category,
+        unit_: data.unit_,
+        minQuantity: data.minQuantity,
+        reorderQuantity: data.reorderQuantity,
+        costCents: data.costCents,
+        sku: data.sku,
+        // `quantityOnHand` não se edita aqui de propósito: muda só por
+        // movimento, para o histórico nunca ter saltos inexplicados.
+      },
+    });
+
+    await recordAudit(tx, actor, {
+      action: "UPDATE",
+      entityType: "Material",
+      entityId: materialId,
+      before,
+      after: updated,
+    });
+
+    return updated;
+  });
+}
+
+/** Desativa um material. Não apaga: os movimentos passados referem-no. */
+export async function deactivateMaterial(actor: Actor, materialId: string) {
+  assertCan(actor, "inventory:write");
+
+  const before = await prisma.material.findFirst({
+    where: { unitId: actor.unitId, id: materialId, deletedAt: null },
+  });
+  if (!before) throw new NotFoundError("Material");
+
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.material.update({
+      where: { id: materialId },
+      data: { isActive: false },
+    });
+
+    await recordAudit(tx, actor, {
+      action: "UPDATE",
+      entityType: "Material",
+      entityId: materialId,
+      before: { isActive: true },
+      after: { isActive: false },
+    });
+
+    return updated;
+  });
+}

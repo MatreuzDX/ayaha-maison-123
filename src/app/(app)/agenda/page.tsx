@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { AppointmentStatus } from "@prisma/client";
 import { requireActorPage } from "@/server/auth";
 import { can } from "@/server/permissions";
+import { AppointmentActions } from "./appointment-actions";
 import { listAppointments } from "@/server/services/appointment.service";
 import { AppointmentStatusBadge } from "@/components/ui/badge";
 import { Card, EmptyState, PageHeader } from "@/components/ui/page";
@@ -19,6 +21,19 @@ export const metadata: Metadata = { title: "Agenda" };
 
 /** Quantos dias mostrar de uma vez. Uma semana cabe no ecrã sem rolar demais. */
 const DAYS_AHEAD = 7;
+
+/**
+ * Estados que ainda admitem ação. Uma marcação concluída, cancelada ou com
+ * falta já fechou o seu ciclo — mostrar "Concluir" nessas seria oferecer algo
+ * que o serviço recusa.
+ */
+const OPEN_STATUSES: AppointmentStatus[] = [
+  "REQUESTED",
+  "CONFIRMED",
+  "REMINDED",
+  "EN_ROUTE",
+  "IN_PROGRESS",
+];
 
 export default async function AgendaPage({
   searchParams,
@@ -41,6 +56,9 @@ export default async function AgendaPage({
   );
 
   const appointments = await listAppointments(actor, { from, to });
+
+  const canUpdate = can(actor, "appointment:update");
+  const canCancel = can(actor, "appointment:cancel");
 
   // Agrupar por dia para dar títulos legíveis em vez de uma lista corrida.
   const byDay = new Map<string, typeof appointments>();
@@ -129,11 +147,24 @@ export default async function AgendaPage({
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <AppointmentStatusBadge status={appointment.status} />
                       <span className="tabular text-sm">
                         {formatEUR(appointment.totalCents)}
                       </span>
+                      {OPEN_STATUSES.includes(appointment.status) && (
+                        <AppointmentActions
+                          appointmentId={appointment.id}
+                          clientName={fullName(
+                            appointment.client.firstName,
+                            appointment.client.lastName,
+                          )}
+                          totalCents={appointment.totalCents}
+                          when={`${formatDayHeading(appointment.startAt)}, ${formatTime(appointment.startAt)}`}
+                          canComplete={canUpdate}
+                          canCancel={canCancel}
+                        />
+                      )}
                     </div>
                   </Card>
                 ))}

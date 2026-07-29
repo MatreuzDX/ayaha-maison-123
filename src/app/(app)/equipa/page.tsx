@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, EmptyState, PageHeader } from "@/components/ui/page";
 import { formatMinuteOfDay } from "@/lib/datetime";
 import { initials } from "@/lib/format";
+import { EditHoursButton, EditProfessionalButton } from "./team-actions";
 
 export const metadata: Metadata = { title: "Equipa" };
 
@@ -25,6 +26,8 @@ export default async function EquipaPage() {
   if (!can(actor, "professional:read")) redirect("/");
 
   const team = await listProfessionals(actor);
+  const canWrite = can(actor, "professional:write");
+  const canSchedule = can(actor, "schedule:write");
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
@@ -120,6 +123,36 @@ export default async function EquipaPage() {
                   Desloca-se até {professional.maxTravelMin} min
                   {professional.hasVehicle ? " · tem viatura" : ""}
                 </p>
+
+                {(canWrite || canSchedule) && (
+                  <div className="flex flex-wrap gap-1.5 border-t border-[var(--border)] pt-3">
+                    {canSchedule && (
+                      <EditHoursButton
+                        professionalId={professional.id}
+                        displayName={professional.displayName}
+                        hours={professional.workingHours.map((h) => ({
+                          weekday: h.weekday,
+                          startMin: h.startMin,
+                          endMin: h.endMin,
+                        }))}
+                      />
+                    )}
+                    {canWrite && (
+                      <EditProfessionalButton
+                        professional={{
+                          id: professional.id,
+                          displayName: professional.displayName,
+                          bio: professional.bio,
+                          color: professional.color,
+                          isBookable: professional.isBookable,
+                          maxTravelMin: professional.maxTravelMin,
+                          hasVehicle: professional.hasVehicle,
+                          transportMode: professional.transportMode,
+                        }}
+                      />
+                    )}
+                  </div>
+                )}
               </Card>
             );
           })}

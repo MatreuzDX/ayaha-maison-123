@@ -22,6 +22,7 @@ import {
   whatsappLink,
 } from "@/lib/format";
 import { formatDateTime, formatRelativeDays } from "@/lib/datetime";
+import { DeleteClientButton } from "../client-actions";
 
 export const metadata: Metadata = { title: "Ficha de cliente" };
 
@@ -62,6 +63,9 @@ export default async function ClienteDetalhePage({
         }
         action={
           <div className="flex flex-wrap gap-2">
+            <Link href={`/clientes/${client.id}/ficha`}>
+              <Button variant="secondary">Ficha técnica</Button>
+            </Link>
             {can(actor, "client:update") && (
               <Link href={`/clientes/${client.id}/editar`}>
                 <Button variant="secondary">Editar</Button>
@@ -71,6 +75,13 @@ export default async function ClienteDetalhePage({
               <Link href={`/agenda/nova?cliente=${client.id}`}>
                 <Button>Marcar atendimento</Button>
               </Link>
+            )}
+            {can(actor, "client:delete") && (
+              <DeleteClientButton
+                clientId={client.id}
+                clientName={name}
+                visitCount={client.visitCount}
+              />
             )}
           </div>
         }

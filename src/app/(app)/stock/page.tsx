@@ -15,6 +15,11 @@ import {
 import { SearchInput } from "@/components/ui/search-filters";
 import { formatEUR } from "@/lib/money";
 import { formatQuantity } from "@/lib/format";
+import {
+  AdjustStockButton,
+  EditMaterialButton,
+  NewMaterialButton,
+} from "./stock-actions";
 
 export const metadata: Metadata = { title: "Stock" };
 
@@ -28,6 +33,7 @@ export default async function StockPage({
 
   const params = await searchParams;
   const showCost = canAll(actor, "inventory:cost");
+  const canWrite = can(actor, "inventory:write");
 
   const [materials, summary] = await Promise.all([
     listMaterials(actor, { search: params.q }),
@@ -39,6 +45,7 @@ export default async function StockPage({
       <PageHeader
         title="Stock"
         subtitle={`${summary.total} ${summary.total === 1 ? "material" : "materiais"}`}
+        action={canWrite ? <NewMaterialButton /> : undefined}
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -77,6 +84,7 @@ export default async function StockPage({
               <Th align="right">Mínimo</Th>
               {showCost && <Th align="right">Custo unitário</Th>}
               <Th>Estado</Th>
+              {canWrite && <Th align="right">Ações</Th>}
             </tr>
           </thead>
           <tbody>
@@ -120,6 +128,30 @@ export default async function StockPage({
                     <Badge tone="success">Suficiente</Badge>
                   )}
                 </Td>
+                {canWrite && (
+                  <Td align="right">
+                    <span className="flex justify-end gap-1.5">
+                      <AdjustStockButton
+                        materialId={material.id}
+                        name={material.name}
+                        quantityOnHand={material.quantityOnHand}
+                        unit={material.unit_}
+                      />
+                      <EditMaterialButton
+                        material={{
+                          id: material.id,
+                          name: material.name,
+                          brand: material.brand,
+                          category: material.category,
+                          unit: material.unit_,
+                          minQuantity: material.minQuantity,
+                          reorderQuantity: material.reorderQuantity,
+                          costCents: showCost ? material.costCents : 0,
+                        }}
+                      />
+                    </span>
+                  </Td>
+                )}
               </tr>
             ))}
           </tbody>

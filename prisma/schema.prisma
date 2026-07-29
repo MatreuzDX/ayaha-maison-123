@@ -76,6 +76,7 @@ model Unit {
   dataRequests      DataRequest[]
   notifications     Notification[]
   settingEntries    Setting[]
+  mappings          Mapping[]
 
   @@index([slug])
 }
@@ -292,6 +293,13 @@ model Client {
   phoneWhatsapp       Boolean            @default(true)
   birthDate           DateTime?          @db.Timestamptz(3)
   taxId               String?
+  instagram           String?
+  profession          String?
+  photoUrl            String?
+  /// Favorita e VIP são coisas diferentes: favorita é atalho pessoal de quem
+  /// usa o sistema; VIP é estatuto do negócio e afeta prioridade e campanhas.
+  isFavorite          Boolean            @default(false)
+  isVip               Boolean            @default(false)
   addressLine         String?
   addressExtra        String?
   postalCode          String?
@@ -334,6 +342,8 @@ model Client {
   addresses         ClientAddress[]
   tags              ClientTagLink[]
   healthRecord      ClientHealthRecord?
+  lashProfile       LashProfile?
+  mappings          Mapping[]
   appointments      Appointment[]
   timeline          TimelineEvent[]
   consents          Consent[]
@@ -569,6 +579,7 @@ model Appointment {
   stockMovements  StockMovement[]
   commissions     Commission[]
   loyaltyStamp    LoyaltyStamp?
+  mapping         Mapping?
   invoice         Invoice?
   payments        Payment[]
 
@@ -1608,4 +1619,187 @@ model Setting {
   unit Unit @relation(fields: [unitId], references: [id])
 
   @@unique([unitId, key])
+}
+
+// ═══════════════════════════════════════════════════════════
+// FICHA TÉCNICA DE PESTANAS
+// ═══════════════════════════════════════════════════════════
+//
+// Nota importante sobre alergias: NÃO vivem aqui. Estão em
+// `ClientHealthRecord`, que já as guarda com o tratamento de categoria
+// especial que o RGPD exige. Duplicá-las criaria duas fontes de verdade para
+// informação que pode causar uma reação alérgica — o pior sítio possível para
+// haver ambiguidade.
+
+/// Curvaturas do mercado, da mais reta à mais curvada.
+enum LashCurl {
+  I
+  B
+  C
+  CC
+  D
+  DD
+  L
+  LC
+  LD
+  M
+}
+
+enum EyeShape {
+  ALMOND
+  ROUND
+  HOODED
+  DOWNTURNED
+  UPTURNED
+  DEEP_SET
+  PROTRUDING
+  MONOLID
+}
+
+enum FaceShape {
+  OVAL
+  ROUND
+  SQUARE
+  HEART
+  DIAMOND
+  OBLONG
+}
+
+enum EyeSpacing {
+  CLOSE_SET
+  AVERAGE
+  WIDE_SET
+}
+
+enum EyeTilt {
+  UPTURNED
+  NEUTRAL
+  DOWNTURNED
+}
+
+enum Scale3 {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+/// O que a cliente quer alcançar. É o que orienta a escolha do mapping.
+enum VisagismGoal {
+  OPEN_EYE
+  ELONGATE
+  LIFT_OUTER
+  CORRECT_DOWNTURNED
+  CORRECT_CLOSE_SET
+  CORRECT_WIDE_SET
+  SENSUAL
+  NATURAL
+  GLAMOROUS
+}
+
+/// Análise natural e visagismo. Uma por cliente, atualizada quando muda.
+model LashProfile {
+  id       String @id @default(cuid())
+  clientId String @unique
+
+  // ── Análise Natural ──
+  eyeColor                String?
+  eyeShape                EyeShape?
+  eyeSpacing              EyeSpacing?
+  eyeSize                 Scale3?
+  eyeTilt                 EyeTilt?
+  faceShape               FaceShape?
+  skinTone                String?
+  naturalColor            String?
+  /// Espessura em mícrones: 0,15 mm = 150. Inteiro para não haver 0,1499999.
+  naturalThicknessMicrons Int?
+  naturalDensity          Scale3?
+  naturalLengthMm         Int?
+  naturalCurl             LashCurl?
+  growthDirection         String?
+  lashStrength            Scale3?
+  eyeSensitivity          Scale3?
+  wearsGlasses            Boolean     @default(false)
+
+  // ── Visagismo ──
+  goals         VisagismGoal[] @default([])
+  visagismNotes String?
+  /// Efeitos que a cliente gostaria de experimentar um dia.
+  wishlist      String[]       @default([])
+
+  lastReviewedAt   DateTime? @db.Timestamptz(3)
+  lastReviewedById String?
+  createdAt        DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(3)
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+/// Um mapping por aplicação. É o registo técnico do que foi feito.
+model Mapping {
+  id            String  @id @default(cuid())
+  unitId        String
+  clientId      String
+  /// A que atendimento pertence. Nulo se registado fora da agenda.
+  appointmentId String? @unique
+
+  name String
+
+  curl             LashCurl?
+  thicknessMicrons Int?
+  fanType          String?
+  fansPerEye       Int?
+  glueBrand        String?
+  lashBrand        String?
+  removerBrand     String?
+  primerBrand      String?
+  otherProducts    String?
+  applicationMin   Int?
+
+  /// Retenção avaliada na visita seguinte, de 1 a 5. Nulo enquanto não se sabe
+  /// — e é essa a informação que diz se o mapping resultou.
+  retentionStars Int?
+  retentionNote  String?
+
+  recommendedProducts String?
+  notes               String?
+
+  /// Fotografia do mapping desenhado à mão, quando existe.
+  sketchPath String?
+
+  appliedAt DateTime  @default(now()) @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  deletedAt DateTime? @db.Timestamptz(3)
+
+  unit        Unit          @relation(fields: [unitId], references: [id])
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  appointment Appointment?  @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  zones       MappingZone[]
+
+  @@index([clientId, appliedAt])
+  @@index([unitId, appliedAt])
+}
+
+/// Uma zona do olho, do canto interno ao externo.
+///
+/// É isto que o diagrama interativo desenha: cada zona guarda o comprimento
+/// aplicado, e opcionalmente curvatura e espessura próprias — porque há
+/// mappings que mudam a curvatura só no canto externo.
+model MappingZone {
+  id        String @id @default(cuid())
+  mappingId String
+
+  /// LEFT ou RIGHT. Os dois olhos raramente são simétricos.
+  eye      String
+  /// 1 = canto interno. Cresce até ao canto externo.
+  position Int
+
+  lengthMm         Int
+  curl             LashCurl?
+  thicknessMicrons Int?
+
+  mapping Mapping @relation(fields: [mappingId], references: [id], onDelete: Cascade)
+
+  @@unique([mappingId, eye, position])
+  @@index([mappingId])
 }
