@@ -1,0 +1,31 @@
+# Postgres local para desenvolvimento.
+# Arrancar com:  docker compose up -d
+# Parar com:     docker compose down
+# Apagar tudo:   docker compose down -v
+#
+# A migração de constraints usa `btree_gist`, que vem na imagem oficial.
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: ayaha-crm-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ayaha_crm
+      # Locale português para ordenações e comparações de texto coerentes
+      # com o que a aplicação apresenta.
+      LANG: pt_PT.utf8
+    ports:
+      - "5432:5432"
+    volumes:
+      - ayaha_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ayaha_crm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ayaha_pgdata:

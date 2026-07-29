@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancela execuções antigas do mesmo ramo — não vale a pena testar código
+# que já foi substituído.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Lint, tipos, testes e build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        # Os testes de integração correm contra Postgres a sério: as garantias
+        # que mais importam (agenda sem sobreposição, auditoria imutável) vivem
+        # em constraints da base e não seriam testadas com mocks.
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ayaha_crm
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5433/ayaha_crm
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      DEFAULT_UNIT_SLUG: benfica
+      # Sem DEMO_MODE: o build tem de passar como passaria em produção.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar cliente Prisma
+        run: npx prisma generate
+
+      - name: Aplicar migrações
+        run: npx prisma migrate deploy
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Verificar tipos
+        run: npm run typecheck
+
+      - name: Testes
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  guarda-demo:
+    name: Modo demonstração não pode ir para produção
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npx prisma generate
+
+      # Este passo confirma que a proteção funciona: com DEMO_MODE ligado, o
+      # build TEM de falhar. Se algum dia passar, alguém removeu a salvaguarda
+      # e um sistema com dados de clientes poderia ir para o ar com entrada
+      # sem palavra-passe.
+      - name: Build com DEMO_MODE tem de falhar
+        env:
+          DEMO_MODE: "true"
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/naoexiste
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+        run: |
+          if npm run build > /dev/null 2>&1; then
+            echo "::error::O build passou com DEMO_MODE=true. A salvaguarda de src/lib/demo.ts foi removida ou contornada."
+            exit 1
+          fi
+          echo "Confirmado: o build recusa DEMO_MODE em produção."

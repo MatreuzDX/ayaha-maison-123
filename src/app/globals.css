@@ -1,0 +1,188 @@
+@import "tailwindcss";
+
+/*
+ * AYAHA CRM — sistema de cor.
+ *
+ * Paleta real da marca, mas aplicada como ferramenta de trabalho e não como
+ * peça de marketing (ver spec 28.1.1): fundo claro por defeito, dourado
+ * reservado para acentos e ações primárias. Uma profissional passa horas
+ * neste ecrã, muitas vezes num telemóvel à porta de uma cliente.
+ */
+
+:root {
+  /* Marca */
+  --onyx: #0e0e0e;
+  --graphite: #1a1a1a;
+  --graphite-2: #242424;
+  --gold: #c4a870;
+  --gold-light: #d8c39a;
+  --ivory: #f7f5f1;
+  --pearl: #fbfaf8;
+  --blush: #e7d3ce;
+  --rose: #c99a93;
+  --taupe: #b3a292;
+
+  /* Semântica — modo claro */
+  --bg: var(--ivory);
+  --surface: var(--pearl);
+  --surface-2: #ffffff;
+  --border: #e5e1da;
+  --text: var(--onyx);
+  --text-muted: #6b6b6b;
+  --text-subtle: var(--taupe);
+  --accent: var(--gold);
+  --accent-hover: #b39859;
+  --accent-fg: var(--onyx);
+
+  /* Estados */
+  --success: #2f7a4f;
+  --success-bg: #e8f3ec;
+  --warning: #b8860b;
+  --warning-bg: #fbf3e0;
+  --danger: #a33a3a;
+  --danger-bg: #fbeaea;
+  --info: #3a6ea5;
+  --info-bg: #e9f0f7;
+  --neutral: #8a8a8a;
+  --neutral-bg: #f0efec;
+
+  --radius: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: var(--onyx);
+    --surface: var(--graphite);
+    --surface-2: var(--graphite-2);
+    --border: #333333;
+    --text: var(--ivory);
+    --text-muted: #a0a0a0;
+    --accent-hover: var(--gold-light);
+
+    --success: #6fbf8f;
+    --success-bg: #16281d;
+    --warning: #e0b155;
+    --warning-bg: #2a2113;
+    --danger: #e08585;
+    --danger-bg: #2b1717;
+    --info: #7fb0e0;
+    --info-bg: #16222e;
+    --neutral: #9a9a9a;
+    --neutral-bg: #232323;
+  }
+}
+
+/* Escolha explícita do utilizador vence a preferência do sistema. */
+:root[data-theme="light"] {
+  --bg: var(--ivory);
+  --surface: var(--pearl);
+  --surface-2: #ffffff;
+  --border: #e5e1da;
+  --text: var(--onyx);
+  --text-muted: #6b6b6b;
+  --accent-hover: #b39859;
+  --success: #2f7a4f;
+  --success-bg: #e8f3ec;
+  --warning: #b8860b;
+  --warning-bg: #fbf3e0;
+  --danger: #a33a3a;
+  --danger-bg: #fbeaea;
+  --info: #3a6ea5;
+  --info-bg: #e9f0f7;
+  --neutral: #8a8a8a;
+  --neutral-bg: #f0efec;
+}
+
+:root[data-theme="dark"] {
+  --bg: var(--onyx);
+  --surface: var(--graphite);
+  --surface-2: var(--graphite-2);
+  --border: #333333;
+  --text: var(--ivory);
+  --text-muted: #a0a0a0;
+  --accent-hover: var(--gold-light);
+  --success: #6fbf8f;
+  --success-bg: #16281d;
+  --warning: #e0b155;
+  --warning-bg: #2a2113;
+  --danger: #e08585;
+  --danger-bg: #2b1717;
+  --info: #7fb0e0;
+  --info-bg: #16222e;
+  --neutral: #9a9a9a;
+  --neutral-bg: #232323;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+
+  --color-onyx: var(--onyx);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-ivory: var(--ivory);
+  --color-pearl: var(--pearl);
+  --color-blush: var(--blush);
+  --color-rose: var(--rose);
+  --color-taupe: var(--taupe);
+
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-neutral: var(--neutral);
+  --color-neutral-bg: var(--neutral-bg);
+
+  --font-display: var(--font-cormorant), Georgia, serif;
+  --font-sans: var(--font-jost), system-ui, sans-serif;
+
+  --radius-base: var(--radius);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-jost), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-cormorant), Georgia, serif;
+}
+
+/* Números tabulares em dados financeiros — colunas alinhadas mesmo com
+   dígitos de larguras diferentes. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Foco sempre visível — requisito de acessibilidade (spec 28.5). */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
