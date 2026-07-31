@@ -46,3 +46,6 @@ next-env.d.ts
 # Base de dados local (embedded-postgres). Contém dados reais e ficheiros
 # binários enormes — nunca deve ser versionada.
 .pgdata/
+
+.vercel
+.env*

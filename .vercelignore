@@ -1,0 +1,16 @@
+# Segredos locais — NUNCA vão no upload. O `.env` de desenvolvimento tem
+# DEMO_MODE ligado e a palavra-passe da base local; se subir, o Next lê-o
+# durante o build e a app arranca em modo demonstração com dados reais.
+.env
+.env.*
+!.env.example
+
+# Fora do que vai para produção: nada disto é preciso para construir a app.
+docs/
+tests/
+.github/
+.pgdata/
+scripts/
+*.md
+docker-compose.yml
+vitest.config.ts

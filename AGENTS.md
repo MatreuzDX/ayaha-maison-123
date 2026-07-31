@@ -175,6 +175,13 @@ Actions e rotas de API (atira 401).
   `"__none__"` — há testes que fixam isto.
 - **A base tem de ser UTF8.** Em Windows o `initdb` herda WIN1252 e a migração
   de constraints rebenta com os comentários acentuados.
+- **Em produção, `DATABASE_URL` usa a porta 6543, não a 5432.** O Vercel corre
+  sem estado: cada pedido pode abrir a sua própria ligação. A porta 5432 é modo
+  sessão e prende a ligação até ao fim — 15 pedidos em paralelo esgotam o
+  pool e as páginas começam a devolver 500 de forma intermitente. A 6543 é o
+  pooler em modo transação, feito para este cenário (`pgbouncer=true` e
+  `connection_limit=1`). A 5432 serve só para `prisma migrate`, corrido a
+  partir de uma máquina.
 
 ## Decisões pendentes da fundadora
 
