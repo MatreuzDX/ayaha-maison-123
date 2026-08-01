@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { IS_DEMO } from "@/lib/demo";
 import { getActor } from "@/server/auth";
@@ -41,9 +42,15 @@ export default async function LoginPage({
           )}
         </div>
 
-        <p className="mt-6 text-center text-xs text-[var(--text-muted)]">
-          Entre com o e-mail e a palavra-passe da sua conta. Perdeu a
-          palavra-passe? Contacte a administração.
+        <p className="mt-6 text-center text-sm text-[var(--text-muted)]">
+          Ainda não é cliente?{" "}
+          <Link href="/conta/registar" className="text-[var(--accent)] hover:underline">
+            Criar conta
+          </Link>
+        </p>
+
+        <p className="mt-3 text-center text-xs text-[var(--text-muted)]">
+          Equipa: perdeu a palavra-passe? Contacte a administração.
         </p>
       </div>
     </main>
