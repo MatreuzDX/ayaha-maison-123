@@ -33,7 +33,7 @@ const ICONS: Record<NavIcon, typeof LayoutDashboard> = {
 };
 
 function isActive(pathname: string, href: string): boolean {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  return href === "/app" ? pathname === "/app" : pathname.startsWith(href);
 }
 
 export function SidebarNav({ items }: { items: NavItem[] }) {

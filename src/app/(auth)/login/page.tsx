@@ -17,7 +17,7 @@ export default async function LoginPage({
   // cliente, não mostra o formulário outra vez — manda logo para o sítio
   // certo. As duas verificações são independentes por natureza dos cookies
   // terem nomes diferentes; nunca as duas são verdadeiras ao mesmo tempo.
-  if (await getActor()) redirect("/");
+  if (await getActor()) redirect("/app");
   if (await getClientSession()) redirect("/conta");
 
   const { proximo } = await searchParams;

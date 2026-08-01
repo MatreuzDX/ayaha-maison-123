@@ -63,7 +63,7 @@ export async function loginAction(
     // Só respeita "proximo" se pertencer à zona certa — senão o próximo
     // pedido seria recusado pelo proxy por falta do cookie de cliente, e a
     // pessoa via um salto confuso em vez de cair logo no sítio certo.
-    destination = proximo && !isClientPath(proximo) ? proximo : "/";
+    destination = proximo && !isClientPath(proximo) ? proximo : "/app";
   } catch (staffErr) {
     if (!(staffErr instanceof AppError)) {
       console.error("[login:staff]", staffErr);
@@ -117,5 +117,5 @@ export async function demoLoginAction(): Promise<LoginState> {
     return { error: "Não foi possível entrar." };
   }
 
-  redirect("/");
+  redirect("/app");
 }

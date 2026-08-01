@@ -32,18 +32,18 @@ export interface NavItem {
 
 /** Cada item declara a permissão que exige — o servidor filtra antes de enviar. */
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Início", icon: "dashboard", permission: "service:read" },
-  { href: "/agenda", label: "Agenda", icon: "agenda", permission: "appointment:read" },
-  { href: "/clientes", label: "Clientes", icon: "clientes", permission: "client:read" },
-  { href: "/atendimentos", label: "Atendimentos", icon: "atendimentos", permission: "appointment:read" },
-  { href: "/equipa", label: "Equipa", icon: "equipa", permission: "professional:read" },
-  { href: "/servicos", label: "Serviços", icon: "servicos", permission: "service:read" },
-  { href: "/stock", label: "Stock", icon: "stock", permission: "inventory:read" },
-  { href: "/financeiro", label: "Financeiro", icon: "financeiro", permission: "finance:read" },
-  { href: "/marketing", label: "Marketing", icon: "marketing", permission: "marketing:read" },
-  { href: "/relatorios", label: "Relatórios", icon: "relatorios", permission: "report:read" },
-  { href: "/definicoes", label: "Definições", icon: "definicoes", permission: "settings:write" },
+  { href: "/app", label: "Início", icon: "dashboard", permission: "service:read" },
+  { href: "/app/agenda", label: "Agenda", icon: "agenda", permission: "appointment:read" },
+  { href: "/app/clientes", label: "Clientes", icon: "clientes", permission: "client:read" },
+  { href: "/app/atendimentos", label: "Atendimentos", icon: "atendimentos", permission: "appointment:read" },
+  { href: "/app/equipa", label: "Equipa", icon: "equipa", permission: "professional:read" },
+  { href: "/app/servicos", label: "Serviços", icon: "servicos", permission: "service:read" },
+  { href: "/app/stock", label: "Stock", icon: "stock", permission: "inventory:read" },
+  { href: "/app/financeiro", label: "Financeiro", icon: "financeiro", permission: "finance:read" },
+  { href: "/app/marketing", label: "Marketing", icon: "marketing", permission: "marketing:read" },
+  { href: "/app/relatorios", label: "Relatórios", icon: "relatorios", permission: "report:read" },
+  { href: "/app/definicoes", label: "Definições", icon: "definicoes", permission: "settings:write" },
 ];
 
 /** Destinos da barra inferior em mobile — os cinco mais usados no terreno. */
-export const MOBILE_HREFS = ["/", "/agenda", "/clientes", "/atendimentos", "/stock"];
+export const MOBILE_HREFS = ["/app", "/app/agenda", "/app/clientes", "/app/atendimentos", "/app/stock"];
