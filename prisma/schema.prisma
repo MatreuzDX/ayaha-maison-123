@@ -1837,7 +1837,26 @@ model ClientAccount {
   createdAt    DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime  @updatedAt @db.Timestamptz(3)
 
-  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client   Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  sessions ClientSession[]
+}
+
+/// Sessão do portal de cliente. Espelha o Session da equipa (token opaco,
+/// hash SHA-256, nunca em claro na base) mas fica numa tabela à parte —
+/// os dois domínios de confiança não se tocam em lado nenhum do sistema.
+model ClientSession {
+  id              String   @id @default(cuid())
+  sessionToken    String   @unique
+  clientAccountId String
+  expires         DateTime @db.Timestamptz(3)
+  ip              String?
+  userAgent       String?
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+
+  clientAccount ClientAccount @relation(fields: [clientAccountId], references: [id], onDelete: Cascade)
+
+  @@index([clientAccountId])
+  @@index([expires])
 }
 
 model Product {

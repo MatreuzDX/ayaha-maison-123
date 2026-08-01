@@ -15,7 +15,7 @@ function SubmitButton() {
   );
 }
 
-export function LoginForm() {
+export function LoginForm({ proximo }: { proximo?: string }) {
   const [state, formAction] = useActionState<LoginState, FormData>(
     loginAction,
     {},
@@ -23,6 +23,8 @@ export function LoginForm() {
 
   return (
     <form action={formAction} className="space-y-4" noValidate>
+      {proximo && <input type="hidden" name="proximo" value={proximo} />}
+
       {state.error && (
         <div
           role="alert"

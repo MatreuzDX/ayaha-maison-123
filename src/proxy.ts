@@ -7,42 +7,65 @@ import { NextResponse, type NextRequest } from "next/server";
  * O comportamento é o mesmo.
  *
  * Corre no edge runtime e **não** tem acesso ao Prisma, por isso limita-se a
- * verificar a presença do cookie. A validação a sério — sessão existe, não
- * expirou, utilizador ativo — é feita por `getActor()` no layout de `(app)`,
- * que corre em Node e fala com a base de dados.
+ * verificar a presença do cookie certo para cada zona. A validação a sério —
+ * sessão existe, não expirou, conta ativa — é feita por `getActor()` (equipa)
+ * ou `getClientSession()` (cliente) no layout de cada zona, que corre em Node
+ * e fala com a base de dados.
  *
  * Esta separação é deliberada: evita um round-trip inútil ao servidor para
  * quem claramente não tem sessão, sem prometer garantias de segurança que
  * este runtime não pode cumprir.
  */
 
-const COOKIE_NAME = "ayaha_session";
-const PUBLIC_PATHS = ["/login", "/recuperar"];
+const STAFF_COOKIE = "ayaha_session";
+const CLIENT_COOKIE = "ayaha_client_session";
+const PUBLIC_PATHS = ["/login", "/recuperar", "/conta/registar"];
+
+/**
+ * Zona da cliente vs. zona da equipa: cada uma exige o SEU cookie, nunca o
+ * do outro. Como os nomes são diferentes, isto não depende de nenhuma
+ * lógica condicional que se possa esquecer — uma cliente com sessão válida
+ * mas sem `ayaha_session` cai sempre no caso "sem cookie" para tudo o que
+ * não é `/conta`, e vice-versa. A garantia vem da separação, não de um if.
+ */
+function isClientZone(pathname: string): boolean {
+  return pathname.startsWith("/conta");
+}
 
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const hasCookie = request.cookies.has(COOKIE_NAME);
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  if (!hasCookie && !isPublic) {
+  if (isPublic) {
+    return applySecurityHeaders(NextResponse.next());
+  }
+
+  const requiredCookie = isClientZone(pathname) ? CLIENT_COOKIE : STAFF_COOKIE;
+  const hasCookie = request.cookies.has(requiredCookie);
+
+  if (!hasCookie) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    url.search = "";
     // Guardar para onde ia, para o devolver lá depois de entrar.
     if (pathname !== "/") url.searchParams.set("proximo", pathname);
     return NextResponse.redirect(url);
   }
 
-  // Repare-se que NÃO se faz o inverso — quem tem cookie não é empurrado para
-  // fora do /login. Um cookie cuja sessão já não existe (expirou, foi revogada,
-  // ou a base foi recriada) passaria essa verificação: o /login mandava-o para
-  // "/", "/" mandava-o de volta para /login, e a pessoa ficava presa num ciclo
-  // sem forma de entrar. Só a página de login sabe validar a sessão a sério,
-  // porque fala com a base — por isso é ela que decide se já está autenticado.
+  // Repare-se que NÃO se faz o inverso — quem tem o cookie certo não é
+  // empurrado para fora do /login. Um cookie cuja sessão já não existe
+  // (expirou, foi revogada, ou a base foi recriada) passaria essa
+  // verificação: o /login mandava-o para "/", "/" mandava-o de volta para
+  // /login, e a pessoa ficava presa num ciclo sem forma de entrar. Só a
+  // página de login sabe validar a sessão a sério, porque fala com a base
+  // — por isso é ela que decide se já está autenticado, e para onde.
 
-  const response = NextResponse.next();
+  return applySecurityHeaders(NextResponse.next());
+}
 
-  // Cabeçalhos de segurança (spec secção 29). O CSP fica para a Fase 8, quando
-  // se souber que scripts externos entram (mapas, analytics).
+function applySecurityHeaders(response: NextResponse): NextResponse {
+  // Cabeçalhos de segurança (spec secção 29). O CSP fica para quando se
+  // souber que scripts externos entram (mapas, analytics, pagamentos).
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -50,7 +73,6 @@ export default function proxy(request: NextRequest) {
     "Permissions-Policy",
     "camera=(self), microphone=(), geolocation=(self)",
   );
-
   return response;
 }
 
