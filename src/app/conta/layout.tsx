@@ -1,7 +1,12 @@
 import type { ReactNode } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { logoutClient } from "@/server/client-auth";
+
+export const metadata: Metadata = {
+  title: { template: "%s · AYAHA MAISON", default: "A minha conta" },
+};
 
 /**
  * Casca da Área do Cliente.

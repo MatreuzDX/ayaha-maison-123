@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { logout, requireActorPage } from "@/server/auth";
 import { can, ROLE_LABELS } from "@/server/permissions";
@@ -5,6 +6,10 @@ import { MobileNav, SidebarNav } from "@/components/shell/nav";
 import { NAV_ITEMS } from "@/components/shell/nav-items";
 import { prisma } from "@/server/db";
 import { initials } from "@/lib/format";
+
+export const metadata: Metadata = {
+  title: { template: "%s · AYAHA CRM", default: "AYAHA CRM" },
+};
 
 export default async function AppLayout({
   children,

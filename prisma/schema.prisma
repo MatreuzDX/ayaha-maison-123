@@ -454,7 +454,7 @@ model ServiceCategory {
 }
 
 model Service {
-  id                 String    @id @default(cuid())
+  id                 String  @id @default(cuid())
   unitId             String
   categoryId         String
   name               String
@@ -462,27 +462,40 @@ model Service {
   description        String?
   tagline            String?
   durationMin        Int
-  setupMin           Int       @default(15)
-  teardownMin        Int       @default(5)
-  bufferAfterMin     Int       @default(0)
+  setupMin           Int     @default(15)
+  teardownMin        Int     @default(5)
+  bufferAfterMin     Int     @default(0)
   priceCents         Int
-  priceOnRequest     Boolean   @default(false)
-  costCents          Int       @default(0)
-  vatBps             Int       @default(0)
-  requiresPatchTest  Boolean   @default(false)
-  minAdvanceHours    Int       @default(12)
-  maxAdvanceDays     Int       @default(90)
-  requiresDeposit    Boolean   @default(false)
-  depositCents       Int       @default(0)
-  isMaintenance      Boolean   @default(false)
+  priceOnRequest     Boolean @default(false)
+  costCents          Int     @default(0)
+  vatBps             Int     @default(0)
+  requiresPatchTest  Boolean @default(false)
+  minAdvanceHours    Int     @default(12)
+  maxAdvanceDays     Int     @default(90)
+  requiresDeposit    Boolean @default(false)
+  depositCents       Int     @default(0)
+  isMaintenance      Boolean @default(false)
   parentServiceId    String?
   recommendedGapDays Int?
   commissionBps      Int?
-  isActive           Boolean   @default(true)
-  sortOrder          Int       @default(0)
-  createdAt          DateTime  @default(now()) @db.Timestamptz(3)
-  updatedAt          DateTime  @updatedAt @db.Timestamptz(3)
-  deletedAt          DateTime? @db.Timestamptz(3)
+  isActive           Boolean @default(true)
+  sortOrder          Int     @default(0)
+
+  // ── Catálogo público ──
+  // Nada disto existe para o funcionamento interno (agenda, comissões,
+  // stock) — é só o que o site público mostra a quem ainda não é cliente.
+  // Fica opcional de propósito: um serviço pode existir e ser marcado sem
+  // ter ainda uma ficha pronta para publicar.
+  imageUrl        String?
+  highlights      String[] @default([])
+  longDescription String[] @default([])
+  /// Rótulo cosmético do cartão público (Clássico, Volume, Efeitos...).
+  /// Independente de `categoryId`, que organiza a agenda internamente.
+  displayCategory String?
+
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  deletedAt DateTime? @db.Timestamptz(3)
 
   unit             Unit                @relation(fields: [unitId], references: [id])
   category         ServiceCategory     @relation(fields: [categoryId], references: [id])

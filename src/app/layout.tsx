@@ -15,10 +15,15 @@ const jost = Jost({
   display: "swap",
 });
 
+// O título e o "robots" definitivos vivem em cada zona (site público, /app,
+// /conta) — este layout serve as fallback neutro, sem presumir marca de
+// ferramenta interna nem de site de marketing. Um `template` aqui aplicar-
+// se-ia por cima do título de QUALQUER zona (mesmo as que definem o seu
+// próprio), o que é exatamente o problema que já aconteceu uma vez.
 export const metadata: Metadata = {
-  title: { default: "AYAHA CRM", template: "%s · AYAHA CRM" },
+  title: "AYAHA MAISON",
   description: "Gestão da AYAHA MAISON — clientes, agenda e financeiro.",
-  // É uma ferramenta interna: não deve aparecer em motores de busca.
+  // Seguro por omissão: só a zona pública reverte isto explicitamente.
   robots: { index: false, follow: false },
 };
 

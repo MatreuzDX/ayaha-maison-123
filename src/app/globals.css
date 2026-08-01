@@ -16,6 +16,7 @@
   --graphite-2: #242424;
   --gold: #c4a870;
   --gold-light: #d8c39a;
+  --gold-deep: #a98a4f;
   --ivory: #f7f5f1;
   --pearl: #fbfaf8;
   --blush: #e7d3ce;
@@ -126,13 +127,19 @@
   --color-accent-fg: var(--accent-fg);
 
   --color-onyx: var(--onyx);
+  --color-graphite: var(--graphite);
+  --color-graphite2: var(--graphite-2);
   --color-gold: var(--gold);
   --color-gold-light: var(--gold-light);
+  --color-gold-deep: var(--gold-deep);
   --color-ivory: var(--ivory);
   --color-pearl: var(--pearl);
   --color-blush: var(--blush);
   --color-rose: var(--rose);
   --color-taupe: var(--taupe);
+
+  /* Tracking largo do site público (rótulos "eyebrow", maiúsculas). */
+  --tracking-luxe: 0.28em;
 
   --color-success: var(--success);
   --color-success-bg: var(--success-bg);
@@ -185,4 +192,240 @@ h3 {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SITE PÚBLICO
+   ═══════════════════════════════════════════════════════════
+   Classes e animações portadas do site institucional. A regra de
+   `prefers-reduced-motion` acima já as cobre — usa `*`, não precisa de
+   repetir por classe. */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Seleção de texto dourada */
+::selection {
+  background: rgba(196, 168, 112, 0.3);
+  color: var(--onyx);
+}
+
+/* Scrollbar refinada */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #f0ede7;
+}
+::-webkit-scrollbar-thumb {
+  background: #c9c1b3;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
+}
+
+@layer components {
+  .container-luxe {
+    @apply mx-auto w-full max-w-7xl px-6 md:px-10;
+  }
+
+  .eyebrow {
+    @apply text-gold-deep text-xs font-medium tracking-luxe uppercase;
+  }
+
+  .heading-serif {
+    @apply font-serif leading-[1.05] font-light tracking-tight;
+  }
+
+  /* Botão dourado premium */
+  .btn-gold {
+    @apply bg-gold text-onyx hover:bg-gold-deep hover:text-ivory focus-visible:outline-gold-deep relative inline-flex
+      items-center justify-center gap-2 overflow-hidden rounded-full px-8 py-3.5 text-sm font-medium tracking-[0.15em]
+      uppercase transition-all duration-300 hover:-translate-y-0.5
+      hover:shadow-[0_14px_34px_-10px_rgba(169,138,79,0.7)] focus-visible:outline focus-visible:outline-2
+      focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-outline {
+    @apply text-onyx hover:border-gold hover:text-gold-deep focus-visible:outline-gold relative inline-flex
+      items-center justify-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--onyx)_25%,transparent)]
+      px-8 py-3.5 text-sm font-medium tracking-[0.15em] uppercase transition-all duration-300 hover:-translate-y-0.5
+      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2;
+  }
+
+  .btn-dark {
+    @apply bg-onyx text-ivory hover:bg-graphite2 focus-visible:outline-gold relative inline-flex items-center
+      justify-center gap-2 overflow-hidden rounded-full px-8 py-3.5 text-sm font-medium tracking-[0.15em] uppercase
+      transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline
+      focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50;
+  }
+
+  /* Elevação suave para cartões interativos (serviços, produtos, galeria). */
+  .hover-lift {
+    @apply transition-all duration-500 hover:-translate-y-1.5
+      hover:shadow-[0_24px_48px_-22px_rgba(14,14,14,0.35)];
+  }
+
+  .input-luxe {
+    @apply text-onyx placeholder:text-onyx/40 focus:border-gold focus:ring-gold/30 w-full rounded-lg
+      border border-[color-mix(in_srgb,var(--onyx)_15%,transparent)] bg-white px-4 py-3 text-sm transition
+      focus:ring-2 focus:outline-none;
+  }
+
+  .label-luxe {
+    @apply text-onyx/60 mb-1.5 block text-xs font-medium tracking-[0.1em] uppercase;
+  }
+
+  .card-luxe {
+    @apply rounded-2xl border border-[color-mix(in_srgb,var(--onyx)_10%,transparent)] bg-white
+      shadow-[0_2px_20px_-12px_rgba(0,0,0,0.15)] transition-all duration-300;
+  }
+
+  .link-underline {
+    @apply after:bg-gold relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0
+      after:transition-all after:duration-300 hover:after:w-full;
+  }
+
+  .gold-divider {
+    @apply from-gold h-px w-16 bg-gradient-to-r to-transparent;
+  }
+}
+
+/* Brilho que atravessa os botões ao passar o rato */
+.btn-gold::before,
+.btn-dark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 65%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.75s ease;
+  pointer-events: none;
+}
+.btn-gold:hover::before,
+.btn-dark:hover::before {
+  transform: translateX(130%);
+}
+
+/* Reveal on scroll — com direções (up/left/right/scale) */
+.reveal {
+  opacity: 0;
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-up {
+  transform: translateY(28px);
+}
+.reveal-left {
+  transform: translateX(-34px);
+}
+.reveal-right {
+  transform: translateX(34px);
+}
+.reveal-scale {
+  transform: scale(0.94);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+/* Zoom lento e contínuo na imagem do hero (efeito Ken Burns). */
+@keyframes kenburns {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.08);
+  }
+}
+/* Indicador "role para descobrir" a saltitar suavemente. */
+@keyframes cue {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(7px);
+    opacity: 1;
+  }
+}
+/* Flutuação delicada para elementos decorativos. */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+/* Deriva suave (vertical + horizontal) para as partículas douradas. */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(10px, -16px);
+    opacity: 0.85;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-in {
+  animation: fade-in 1.2s ease both;
+}
+.animate-shimmer {
+  animation: shimmer 3s linear infinite;
+}
+.animate-kenburns {
+  animation: kenburns 16s ease-out forwards;
+}
+.animate-cue {
+  animation: cue 1.9s ease-in-out infinite;
+}
+.animate-float {
+  animation: float 7s ease-in-out infinite;
+}
+.animate-drift {
+  animation: drift 9s ease-in-out infinite;
 }
