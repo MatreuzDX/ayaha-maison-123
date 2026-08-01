@@ -77,6 +77,8 @@ model Unit {
   notifications     Notification[]
   settingEntries    Setting[]
   mappings          Mapping[]
+  products          Product[]
+  orders            Order[]
 
   @@index([slug])
 }
@@ -357,6 +359,8 @@ model Client {
   waitlistEntries   WaitlistEntry[]
   messages          Message[]
   dataRequests      DataRequest[]
+  account           ClientAccount?
+  orders            Order[]
 
   @@index([unitId, status])
   @@index([unitId, lastVisitAt])
@@ -1037,6 +1041,7 @@ model Coupon {
 
   unit        Unit               @relation(fields: [unitId], references: [id])
   redemptions CouponRedemption[]
+  orders      Order[]
 
   @@unique([unitId, code])
 }
@@ -1260,6 +1265,10 @@ model Payment {
   invoiceId     String?
   appointmentId String?
   clientId      String?
+  /// Liga o pagamento a uma encomenda da loja. Fica solto do Invoice de
+  /// propósito: o financeiro está pausado à espera de decisões sobre IVA, e
+  /// a loja não devia ficar refém dessa decisão para poder lançar.
+  orderId       String?
   method        PaymentMethod
   amountCents   Int
   reference     String?
@@ -1277,6 +1286,7 @@ model Payment {
   client      Client?      @relation(fields: [clientId], references: [id])
   giftCard    GiftCard?    @relation(fields: [giftCardId], references: [id])
   cashSession CashSession? @relation(fields: [cashSessionId], references: [id])
+  order       Order?       @relation(fields: [orderId], references: [id])
 
   @@index([unitId, receivedAt])
 }
@@ -1802,4 +1812,88 @@ model MappingZone {
 
   @@unique([mappingId, eye, position])
   @@index([mappingId])
+}
+
+// ═══════════════════════════════════════════════════════════
+// PORTAL DE CLIENTE E LOJA
+// ═══════════════════════════════════════════════════════════
+//
+// Suporta o login self-service (site + CRM unificados) e a loja online.
+// Cupões, recompensas e cartões-oferta reaproveitam os modelos que já
+// existiam (Coupon, Reward, GiftCard) — nada disso é duplicado aqui.
+
+/// Login de cliente. Separado do Client (ficha rica gerida pela equipa)
+/// de propósito: nem toda cliente tem conta online, e misturar os dois
+/// tornaria o Client obrigatoriamente "uma conta", quando hoje é só um
+/// registo de negócio.
+model ClientAccount {
+  id           String    @id @default(cuid())
+  clientId     String    @unique
+  email        String    @unique
+  /// Opcional: quem entra só por Google não tem password própria aqui.
+  passwordHash String?
+  googleId     String?   @unique
+  lastLoginAt  DateTime? @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(3)
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  unitId      String
+  slug        String
+  name        String
+  description String?
+  priceCents  Int
+  imageUrl    String?
+  category    String?
+  stockQty    Int      @default(0)
+  featured    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+
+  unit  Unit        @relation(fields: [unitId], references: [id])
+  items OrderItem[]
+
+  @@unique([unitId, slug])
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  unitId          String
+  clientId        String
+  code            String   @unique
+  status          String   @default("PENDING")
+  subtotalCents   Int
+  discountCents   Int      @default(0)
+  totalCents      Int
+  couponId        String?
+  shippingAddress String?
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(3)
+
+  unit     Unit        @relation(fields: [unitId], references: [id])
+  client   Client      @relation(fields: [clientId], references: [id])
+  coupon   Coupon?     @relation(fields: [couponId], references: [id])
+  items    OrderItem[]
+  payments Payment[]
+
+  @@index([unitId, createdAt])
+  @@index([clientId])
+}
+
+model OrderItem {
+  id             String @id @default(cuid())
+  orderId        String
+  productId      String
+  nameSnapshot   String
+  unitPriceCents Int
+  quantity       Int
+  totalCents     Int
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
 }
