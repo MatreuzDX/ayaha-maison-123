@@ -1,5 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { deleteClient } from "@/server/services/client.service";
+import {
+  approveClientAccount,
+  deleteClient,
+} from "@/server/services/client.service";
+import { NotFoundError } from "@/server/errors";
 import {
   cleanupFixture,
   createFixture,
@@ -59,5 +63,60 @@ describe.skipIf(!hasDatabase)("apagar cliente", () => {
       data: { clientId: newClient.id, email, passwordHash: "outra-hash" },
     });
     expect(newAccount.email).toBe(email);
+  });
+});
+
+describe.skipIf(!hasDatabase)("aprovar conta de cliente", () => {
+  let f: Fixture;
+
+  beforeAll(async () => {
+    f = await createFixture("aprovar-conta");
+  });
+
+  afterAll(async () => {
+    await cleanupFixture(f.unitId);
+    await db.$disconnect();
+  });
+
+  it("aprova uma conta pendente", async () => {
+    const account = await db.clientAccount.create({
+      data: {
+        clientId: f.clientId,
+        email: `pendente-${Date.now()}@teste.pt`,
+        passwordHash: "hash-de-teste",
+        approvedAt: null,
+      },
+    });
+
+    const approved = await approveClientAccount(f.owner, f.clientId);
+    expect(approved.approvedAt).not.toBeNull();
+
+    const reloaded = await db.clientAccount.findUniqueOrThrow({
+      where: { id: account.id },
+    });
+    expect(reloaded.approvedAt).not.toBeNull();
+  });
+
+  it("é idempotente numa conta já aprovada", async () => {
+    const firstApprovedAt = (await approveClientAccount(f.owner, f.clientId))
+      .approvedAt;
+    const secondApprovedAt = (await approveClientAccount(f.owner, f.clientId))
+      .approvedAt;
+    expect(secondApprovedAt).toEqual(firstApprovedAt);
+  });
+
+  it("recusa quando a ficha não tem conta de acesso", async () => {
+    const client = await db.client.create({
+      data: {
+        unitId: f.unitId,
+        firstName: "Sem Conta",
+        phone: `+3519${String(Date.now()).slice(-8)}`,
+        status: "LEAD",
+      },
+    });
+
+    await expect(approveClientAccount(f.owner, client.id)).rejects.toThrow(
+      NotFoundError,
+    );
   });
 });

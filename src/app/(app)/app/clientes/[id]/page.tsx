@@ -22,7 +22,7 @@ import {
   whatsappLink,
 } from "@/lib/format";
 import { formatDateTime, formatRelativeDays } from "@/lib/datetime";
-import { DeleteClientButton } from "../client-actions";
+import { ApproveAccountButton, DeleteClientButton } from "../client-actions";
 
 export const metadata: Metadata = { title: "Ficha de cliente" };
 
@@ -139,7 +139,10 @@ export default async function ClienteDetalhePage({
                 rel="noopener noreferrer"
                 className="flex items-center gap-2.5 text-sm hover:text-[var(--accent)]"
               >
-                <MessageCircle size={16} className="text-[var(--text-subtle)]" />
+                <MessageCircle
+                  size={16}
+                  className="text-[var(--text-subtle)]"
+                />
                 Abrir no WhatsApp
               </a>
             )}
@@ -149,7 +152,10 @@ export default async function ClienteDetalhePage({
                 href={`mailto:${client.email}`}
                 className="flex items-center gap-2.5 text-sm break-all hover:text-[var(--accent)]"
               >
-                <Mail size={16} className="shrink-0 text-[var(--text-subtle)]" />
+                <Mail
+                  size={16}
+                  className="shrink-0 text-[var(--text-subtle)]"
+                />
                 {client.email}
               </a>
             )}
@@ -179,12 +185,29 @@ export default async function ClienteDetalhePage({
             )}
           </Card>
 
+          {client.account && (
+            <Card className="space-y-2">
+              <h2 className="text-lg">Conta do portal</h2>
+              <p className="text-sm text-[var(--text-muted)]">
+                {client.account.email}
+              </p>
+              {client.account.approvedAt ? (
+                <Badge tone="success">Ativa</Badge>
+              ) : (
+                <div className="space-y-2">
+                  <Badge tone="warning">Pendente de aprovação</Badge>
+                  <ApproveAccountButton clientId={client.id} />
+                </div>
+              )}
+            </Card>
+          )}
+
           {activeCard && (
             <Card>
               <h2 className="text-lg">AYAHA Club</h2>
               <p className="mt-0.5 text-sm text-[var(--text-muted)]">
-                Cartão {activeCard.cycleNumber} ·{" "}
-                {activeCard.stampsCount} de {activeCard.stampsRequired} carimbos
+                Cartão {activeCard.cycleNumber} · {activeCard.stampsCount} de{" "}
+                {activeCard.stampsRequired} carimbos
               </p>
 
               <div

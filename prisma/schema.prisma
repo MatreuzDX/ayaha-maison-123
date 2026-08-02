@@ -1846,6 +1846,11 @@ model ClientAccount {
   /// Opcional: quem entra só por Google não tem password própria aqui.
   passwordHash String?
   googleId     String?   @unique
+  /// `null` = conta pendente de aprovação da equipa. Só fica preenchido
+  /// quando a conta se liga a uma ficha de cliente já conhecida (mesmo
+  /// telefone já na base) ou quando a equipa aprova manualmente — evita que
+  /// qualquer pessoa se registe e tenha acesso imediato a marcações.
+  approvedAt   DateTime? @db.Timestamptz(3)
   lastLoginAt  DateTime? @db.Timestamptz(3)
   createdAt    DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime  @updatedAt @db.Timestamptz(3)

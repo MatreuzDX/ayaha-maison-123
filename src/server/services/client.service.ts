@@ -232,6 +232,9 @@ export async function getClient(actor: Actor, clientId: string) {
         where: { isActive: true },
         include: { stamps: true },
       },
+      account: {
+        select: { id: true, email: true, approvedAt: true },
+      },
     },
   });
 
@@ -457,6 +460,48 @@ export async function deleteClient(actor: Actor, clientId: string) {
     });
 
     return deleted;
+  });
+}
+
+/**
+ * Aprova uma conta de acesso ao portal criada pela própria cliente.
+ *
+ * Contas ligadas a uma ficha já conhecida (telefone já na base) aprovam-se
+ * sozinhas em `registerClient`/`completeGoogleSignup`; isto é só para as que
+ * ficaram pendentes por terem criado uma ficha nova, nunca vista antes.
+ */
+export async function approveClientAccount(actor: Actor, clientId: string) {
+  assertCan(actor, "client:update");
+
+  const client = await prisma.client.findFirst({
+    where: { unitId: actor.unitId, id: clientId, deletedAt: null },
+    include: { account: true },
+  });
+  if (!client) throw new NotFoundError("Cliente");
+  assertOwns(actor, "client:update", client.ownerProfessionalId);
+
+  if (!client.account) {
+    throw new NotFoundError("Conta de acesso ao portal");
+  }
+  if (client.account.approvedAt) {
+    return client.account;
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const approved = await tx.clientAccount.update({
+      where: { id: client.account!.id },
+      data: { approvedAt: new Date() },
+    });
+
+    await recordAudit(tx, actor, {
+      action: "UPDATE",
+      entityType: "ClientAccount",
+      entityId: client.account!.id,
+      before: client.account,
+      after: approved,
+    });
+
+    return approved;
   });
 }
 

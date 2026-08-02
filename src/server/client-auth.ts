@@ -39,6 +39,8 @@ export interface ClientSessionInfo {
   accountId: string;
   unitId: string;
   name: string;
+  /** `false` = conta pendente de aprovação da equipa; ver `approvedAt`. */
+  approved: boolean;
 }
 
 // ── Registo ──────────────────────────────────────────────────
@@ -76,6 +78,12 @@ export async function registerClient(input: {
       where: { unitId: input.unitId, phone, deletedAt: null },
     });
 
+    // Telefone já conhecido da equipa → é alguém que já é cliente, entra
+    // logo aprovada. Ficha nova (nunca vista) → fica pendente até a equipa
+    // aprovar; é o que impede qualquer pessoa de se registar e ter acesso
+    // imediato a marcações sem a equipa saber quem é.
+    const isNewClient = !client;
+
     if (!client) {
       client = await tx.client.create({
         data: {
@@ -94,7 +102,12 @@ export async function registerClient(input: {
     }
 
     const account = await tx.clientAccount.create({
-      data: { clientId: client.id, email, passwordHash },
+      data: {
+        clientId: client.id,
+        email,
+        passwordHash,
+        approvedAt: isNewClient ? null : new Date(),
+      },
     });
 
     return { client, account };
@@ -105,6 +118,7 @@ export async function registerClient(input: {
     result.client.id,
     input.unitId,
     result.client.firstName,
+    result.account.approvedAt !== null,
   );
 }
 
@@ -146,6 +160,7 @@ export async function loginClient(
     account.client.id,
     account.client.unitId,
     account.client.firstName,
+    account.approvedAt !== null,
   );
 }
 
@@ -154,6 +169,7 @@ async function startSession(
   clientId: string,
   unitId: string,
   name: string,
+  approved: boolean,
 ): Promise<ClientSessionInfo> {
   const requestInfo = await getRequestInfo();
   const token = generateToken();
@@ -178,7 +194,7 @@ async function startSession(
     expires,
   });
 
-  return { clientId, accountId, unitId, name };
+  return { clientId, accountId, unitId, name, approved };
 }
 
 // ── Login com Google ────────────────────────────────────────
@@ -222,6 +238,7 @@ export async function loginOrLinkGoogle(profile: {
       byGoogleId.client.id,
       byGoogleId.client.unitId,
       byGoogleId.client.firstName,
+      byGoogleId.approvedAt !== null,
     );
     return { needsPhone: false, ...session };
   }
@@ -242,6 +259,7 @@ export async function loginOrLinkGoogle(profile: {
       byEmail.client.id,
       byEmail.client.unitId,
       byEmail.client.firstName,
+      byEmail.approvedAt !== null,
     );
     return { needsPhone: false, ...session };
   }
@@ -278,6 +296,8 @@ export async function completeGoogleSignup(input: {
       where: { unitId: input.unitId, phone, deletedAt: null },
     });
 
+    const isNewClient = !client;
+
     if (!client) {
       client = await tx.client.create({
         data: {
@@ -295,7 +315,12 @@ export async function completeGoogleSignup(input: {
     }
 
     const account = await tx.clientAccount.create({
-      data: { clientId: client.id, email, googleId: input.googleId },
+      data: {
+        clientId: client.id,
+        email,
+        googleId: input.googleId,
+        approvedAt: isNewClient ? null : new Date(),
+      },
     });
 
     return { client, account };
@@ -306,6 +331,7 @@ export async function completeGoogleSignup(input: {
     result.client.id,
     input.unitId,
     result.client.firstName,
+    result.account.approvedAt !== null,
   );
 }
 
@@ -355,6 +381,7 @@ export async function getClientSession(): Promise<ClientSessionInfo | null> {
     accountId: session.clientAccount.id,
     unitId: session.clientAccount.client.unitId,
     name: session.clientAccount.client.firstName,
+    approved: session.clientAccount.approvedAt !== null,
   };
 }
 

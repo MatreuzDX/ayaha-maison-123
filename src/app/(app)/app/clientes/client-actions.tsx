@@ -1,7 +1,11 @@
 "use client";
 
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import { Button } from "@/components/ui/button";
 import { ConfirmAction } from "@/components/ui/confirm";
-import { deleteClientAction } from "./actions";
+import { approveClientAccountAction, deleteClientAction } from "./actions";
+import type { FormState } from "./actions";
 
 /**
  * Apagar uma ficha de cliente.
@@ -46,5 +50,35 @@ export function DeleteClientButton({
         </p>
       </div>
     </ConfirmAction>
+  );
+}
+
+function ApproveSubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" size="sm" disabled={pending}>
+      {pending ? "A aprovar…" : "Aprovar acesso"}
+    </Button>
+  );
+}
+
+/**
+ * Aprova uma conta de acesso criada pela própria cliente, quando ficou
+ * pendente por ter sido preciso criar uma ficha nova (ver `registerClient`).
+ */
+export function ApproveAccountButton({ clientId }: { clientId: string }) {
+  const [state, formAction] = useActionState<FormState, FormData>(
+    approveClientAccountAction,
+    {},
+  );
+
+  return (
+    <form action={formAction}>
+      <input type="hidden" name="clientId" value={clientId} />
+      {state.error && (
+        <p className="mb-2 text-sm text-[var(--danger)]">{state.error}</p>
+      )}
+      <ApproveSubmitButton />
+    </form>
   );
 }

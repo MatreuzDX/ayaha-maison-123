@@ -6,6 +6,7 @@ import type { AcquisitionSource, ClientStatus } from "@prisma/client";
 import { requireActor } from "@/server/auth";
 import { AppError } from "@/server/errors";
 import {
+  approveClientAccount,
   createClient,
   deleteClient,
   updateClient,
@@ -114,4 +115,26 @@ export async function deleteClientAction(
 
   revalidatePath("/app/clientes");
   redirect("/app/clientes");
+}
+
+export async function approveClientAccountAction(
+  _prev: FormState,
+  form: FormData,
+): Promise<FormState> {
+  const clientId = form.get("clientId");
+  if (typeof clientId !== "string") {
+    return { error: "Ficha não identificada." };
+  }
+
+  try {
+    const actor = await requireActor();
+    await approveClientAccount(actor, clientId);
+  } catch (err) {
+    if (err instanceof AppError) return { error: err.message };
+    console.error("[approveClientAccount]", err);
+    return { error: "Não foi possível aprovar o acesso." };
+  }
+
+  revalidatePath(`/app/clientes/${clientId}`);
+  return {};
 }
