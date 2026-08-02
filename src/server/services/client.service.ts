@@ -17,11 +17,7 @@ import type { ClientStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/server/db";
 import { diffFields, recordAudit } from "@/server/audit";
 import { recordTimeline } from "@/server/timeline";
-import {
-  ConflictError,
-  NotFoundError,
-  ValidationError,
-} from "@/server/errors";
+import { ConflictError, NotFoundError, ValidationError } from "@/server/errors";
 import {
   type Actor,
   assertCan,
@@ -177,12 +173,17 @@ export async function listClients(actor: Actor, filters: ClientFilters = {}) {
   const [items, total] = await Promise.all([
     prisma.client.findMany({
       where,
-      orderBy: [{ lastVisitAt: { sort: "desc", nulls: "last" } }, { firstName: "asc" }],
+      orderBy: [
+        { lastVisitAt: { sort: "desc", nulls: "last" } },
+        { firstName: "asc" },
+      ],
       skip: (page - 1) * perPage,
       take: perPage,
       include: {
         travelZone: { select: { id: true, name: true, feeCents: true } },
-        ownerProfessional: { select: { id: true, displayName: true, color: true } },
+        ownerProfessional: {
+          select: { id: true, displayName: true, color: true },
+        },
       },
     }),
     prisma.client.count({ where }),
@@ -211,7 +212,9 @@ export async function getClient(actor: Actor, clientId: string) {
     where: { ...scope, id: clientId },
     include: {
       travelZone: true,
-      ownerProfessional: { select: { id: true, displayName: true, color: true } },
+      ownerProfessional: {
+        select: { id: true, displayName: true, color: true },
+      },
       tags: { include: { tag: true } },
       addresses: { orderBy: { isDefault: "desc" } },
       appointments: {
@@ -219,7 +222,9 @@ export async function getClient(actor: Actor, clientId: string) {
         orderBy: { startAt: "desc" },
         take: 20,
         include: {
-          professional: { select: { id: true, displayName: true, color: true } },
+          professional: {
+            select: { id: true, displayName: true, color: true },
+          },
           items: { select: { nameSnapshot: true, totalCents: true } },
         },
       },
@@ -437,6 +442,12 @@ export async function deleteClient(actor: Actor, clientId: string) {
       where: { id: clientId },
       data: { deletedAt: new Date() },
     });
+
+    // A ficha fica só marcada como apagada (histórico e faturação dependem
+    // dela), mas a conta de acesso ao portal é apagada a sério — senão o
+    // e-mail continua "ocupado" e a cliente nunca consegue criar conta nova
+    // com o mesmo e-mail, mesmo depois de a ficha ter sido apagada.
+    await tx.clientAccount.deleteMany({ where: { clientId } });
 
     await recordAudit(tx, actor, {
       action: "DELETE",

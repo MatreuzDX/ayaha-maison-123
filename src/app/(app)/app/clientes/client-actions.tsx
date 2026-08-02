@@ -38,6 +38,10 @@ export function DeleteClientButton({
           preciso para a contabilidade e para os relatórios.
         </p>
         <p>
+          Se tiver conta de acesso ao portal, essa conta é apagada — a cliente
+          pode voltar a criar conta com o mesmo e-mail depois.
+        </p>
+        <p>
           Se houver marcações por realizar, o sistema recusa e diz quantas são.
         </p>
       </div>
