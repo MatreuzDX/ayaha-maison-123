@@ -9,7 +9,8 @@ import { listAppointments } from "@/server/services/appointment.service";
 import { AppointmentStatusBadge } from "@/components/ui/badge";
 import { Card, EmptyState, PageHeader } from "@/components/ui/page";
 import { formatEUR } from "@/lib/money";
-import { fullName, formatPhone } from "@/lib/format";
+import { fullName, formatPhone, whatsappLink } from "@/lib/format";
+import { WhatsappIcon } from "@/components/site/WhatsappButton";
 import {
   formatDayHeading,
   formatTime,
@@ -111,7 +112,9 @@ export default async function AgendaPage({
                   >
                     <div
                       className="w-1 self-stretch rounded-full"
-                      style={{ backgroundColor: appointment.professional.color }}
+                      style={{
+                        backgroundColor: appointment.professional.color,
+                      }}
                       aria-hidden="true"
                     />
 
@@ -143,7 +146,8 @@ export default async function AgendaPage({
                       </p>
                       <p className="tabular mt-0.5 text-xs text-[var(--text-muted)]">
                         {formatPhone(appointment.client.phone)}
-                        {appointment.client.city && ` · ${appointment.client.city}`}
+                        {appointment.client.city &&
+                          ` · ${appointment.client.city}`}
                       </p>
                     </div>
 
@@ -153,17 +157,32 @@ export default async function AgendaPage({
                         {formatEUR(appointment.totalCents)}
                       </span>
                       {OPEN_STATUSES.includes(appointment.status) && (
-                        <AppointmentActions
-                          appointmentId={appointment.id}
-                          clientName={fullName(
-                            appointment.client.firstName,
-                            appointment.client.lastName,
-                          )}
-                          totalCents={appointment.totalCents}
-                          when={`${formatDayHeading(appointment.startAt)}, ${formatTime(appointment.startAt)}`}
-                          canComplete={canUpdate}
-                          canCancel={canCancel}
-                        />
+                        <>
+                          <a
+                            href={whatsappLink(
+                              appointment.client.phone,
+                              `Olá ${appointment.client.firstName}! A sua marcação na AYAHA MAISON ficou confirmada: ${formatDayHeading(appointment.startAt)}, às ${formatTime(appointment.startAt)} — ${appointment.items.map((i) => i.nameSnapshot).join(", ")}. Até já! 💛`,
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Enviar confirmação por WhatsApp"
+                            aria-label="Enviar confirmação por WhatsApp"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#25D366] text-white transition-opacity hover:opacity-90"
+                          >
+                            <WhatsappIcon className="h-4.5 w-4.5" />
+                          </a>
+                          <AppointmentActions
+                            appointmentId={appointment.id}
+                            clientName={fullName(
+                              appointment.client.firstName,
+                              appointment.client.lastName,
+                            )}
+                            totalCents={appointment.totalCents}
+                            when={`${formatDayHeading(appointment.startAt)}, ${formatTime(appointment.startAt)}`}
+                            canComplete={canUpdate}
+                            canCancel={canCancel}
+                          />
+                        </>
                       )}
                     </div>
                   </Card>
