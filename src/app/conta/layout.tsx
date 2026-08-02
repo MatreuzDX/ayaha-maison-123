@@ -43,14 +43,22 @@ export default async function ContaLayout({
             AYAHA MAISON
           </Link>
           {session ? (
-            <form action={signOut}>
-              <button
-                type="submit"
+            <div className="flex items-center gap-4">
+              <Link
+                href="/conta/perfil"
                 className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]"
               >
-                Sair
-              </button>
-            </form>
+                O meu perfil
+              </Link>
+              <form action={signOut}>
+                <button
+                  type="submit"
+                  className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]"
+                >
+                  Sair
+                </button>
+              </form>
+            </div>
           ) : (
             <Link
               href="/login"

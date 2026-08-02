@@ -6,6 +6,12 @@
 
 import type { AppointmentStatus } from "@prisma/client";
 import { prisma } from "./db";
+import { ConflictError, ValidationError } from "./errors";
+import {
+  normalizePhone,
+  isValidPostalCode,
+  normalizePostalCode,
+} from "@/lib/format";
 
 export interface PortalAppointment {
   id: string;
@@ -62,4 +68,75 @@ export async function getClientPortalData(
         }
       : null,
   };
+}
+
+export interface ProfileInput {
+  firstName: string;
+  lastName?: string | null;
+  phone: string;
+  addressLine?: string | null;
+  addressExtra?: string | null;
+  postalCode?: string | null;
+  city?: string | null;
+  accessNotes?: string | null;
+  parkingNotes?: string | null;
+}
+
+/**
+ * A cliente edita a própria ficha — só os campos práticos (contacto,
+ * morada, como entrar em casa). Nunca `status`, `notes` internas,
+ * `ownerProfessionalId` ou outros campos que são só da equipa gerir.
+ */
+export async function updateOwnProfile(
+  clientId: string,
+  unitId: string,
+  input: ProfileInput,
+) {
+  const firstName = input.firstName?.trim();
+  if (!firstName) {
+    throw new ValidationError("Indique o seu primeiro nome.");
+  }
+
+  const phone = normalizePhone(input.phone ?? "");
+  if (!phone) {
+    throw new ValidationError(
+      "Telefone inválido. Escreva um número português (933 055 502) ou internacional (+34 600 000 000).",
+    );
+  }
+
+  let postalCode: string | null = null;
+  if (input.postalCode?.trim()) {
+    if (!isValidPostalCode(input.postalCode)) {
+      throw new ValidationError(
+        "Código postal inválido. Use o formato 1500-123.",
+      );
+    }
+    postalCode = normalizePostalCode(input.postalCode);
+  }
+
+  const clash = await prisma.client.findFirst({
+    where: { unitId, phone, deletedAt: null, NOT: { id: clientId } },
+    select: { id: true },
+  });
+  if (clash) {
+    throw new ConflictError(
+      "CLIENT_DUPLICATE_PHONE",
+      "Já existe outra ficha com este telefone. Contacte a equipa se algo estiver errado.",
+    );
+  }
+
+  return prisma.client.update({
+    where: { id: clientId },
+    data: {
+      firstName,
+      lastName: input.lastName?.trim() || null,
+      phone,
+      addressLine: input.addressLine?.trim() || null,
+      addressExtra: input.addressExtra?.trim() || null,
+      postalCode,
+      city: input.city?.trim() || "Lisboa",
+      accessNotes: input.accessNotes?.trim() || null,
+      parkingNotes: input.parkingNotes?.trim() || null,
+    },
+  });
 }
