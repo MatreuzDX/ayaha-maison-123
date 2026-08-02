@@ -4,7 +4,6 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { FieldError, Hint, Input, Label } from "@/components/ui/field";
-import { GoogleButton } from "@/components/auth/google-button";
 import { registerClientAction, type RegisterState } from "./actions";
 
 function SubmitButton() {
@@ -24,14 +23,6 @@ export function RegisterForm() {
 
   return (
     <div className="space-y-4">
-      <GoogleButton />
-
-      <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
-        <span className="h-px flex-1 bg-[var(--border)]" />
-        ou
-        <span className="h-px flex-1 bg-[var(--border)]" />
-      </div>
-
       <form action={formAction} className="space-y-4" noValidate>
         {state.error && (
           <div

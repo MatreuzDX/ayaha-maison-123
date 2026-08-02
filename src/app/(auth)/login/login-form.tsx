@@ -4,7 +4,6 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { FieldError, Input, Label } from "@/components/ui/field";
-import { GoogleButton } from "@/components/auth/google-button";
 import { loginAction, type LoginState } from "./actions";
 
 function SubmitButton() {
@@ -24,14 +23,6 @@ export function LoginForm({ proximo }: { proximo?: string }) {
 
   return (
     <div className="space-y-4">
-      <GoogleButton proximo={proximo} />
-
-      <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
-        <span className="h-px flex-1 bg-[var(--border)]" />
-        ou
-        <span className="h-px flex-1 bg-[var(--border)]" />
-      </div>
-
       <form action={formAction} className="space-y-4" noValidate>
         {proximo && <input type="hidden" name="proximo" value={proximo} />}
 
