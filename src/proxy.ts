@@ -35,12 +35,22 @@ const CLIENT_PREFIX = "/conta";
 /** Páginas dentro da zona da cliente que não exigem sessão — registo. */
 const CLIENT_PUBLIC_PATHS = ["/conta/registar", "/conta/completar-perfil"];
 
-type Zone = "staff" | "client" | "public";
+export type Zone = "staff" | "client" | "public";
 
-function zoneOf(pathname: string): Zone {
-  if (CLIENT_PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return "public";
-  if (pathname.startsWith(STAFF_PREFIX)) return "staff";
-  if (pathname.startsWith(CLIENT_PREFIX)) return "client";
+/**
+ * `startsWith` puro apanhava `/contato` como se fosse `/conta` — mesmo
+ * problema aconteceria com `/appropriado` vs `/app`. Exige que a seguir ao
+ * prefixo venha uma "/" ou o fim da string, nunca outra letra.
+ */
+function startsWithSegment(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
+export function zoneOf(pathname: string): Zone {
+  if (CLIENT_PUBLIC_PATHS.some((p) => startsWithSegment(pathname, p)))
+    return "public";
+  if (startsWithSegment(pathname, STAFF_PREFIX)) return "staff";
+  if (startsWithSegment(pathname, CLIENT_PREFIX)) return "client";
   return "public";
 }
 
