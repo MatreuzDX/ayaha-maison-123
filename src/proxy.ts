@@ -33,7 +33,7 @@ const CLIENT_COOKIE = "ayaha_client_session";
 const STAFF_PREFIX = "/app";
 const CLIENT_PREFIX = "/conta";
 /** Páginas dentro da zona da cliente que não exigem sessão — registo. */
-const CLIENT_PUBLIC_PATHS = ["/conta/registar"];
+const CLIENT_PUBLIC_PATHS = ["/conta/registar", "/conta/completar-perfil"];
 
 type Zone = "staff" | "client" | "public";
 

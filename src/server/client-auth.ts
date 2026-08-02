@@ -22,7 +22,9 @@ import { ValidationError } from "./errors";
 const COOKIE_NAME = "ayaha_client_session";
 const SESSION_DAYS = 30;
 
-const GENERIC_ERROR = new ValidationError("E-mail ou palavra-passe incorretos.");
+const GENERIC_ERROR = new ValidationError(
+  "E-mail ou palavra-passe incorretos.",
+);
 
 function generateToken(): string {
   return randomBytes(32).toString("base64url");
@@ -98,7 +100,12 @@ export async function registerClient(input: {
     return { client, account };
   });
 
-  return startSession(result.account.id, result.client.id, input.unitId, result.client.firstName);
+  return startSession(
+    result.account.id,
+    result.client.id,
+    input.unitId,
+    result.client.firstName,
+  );
 }
 
 // ── Login ────────────────────────────────────────────────────
@@ -111,7 +118,9 @@ export async function loginClient(
 
   const account = await prisma.clientAccount.findUnique({
     where: { email: normalizedEmail },
-    include: { client: { select: { id: true, unitId: true, firstName: true } } },
+    include: {
+      client: { select: { id: true, unitId: true, firstName: true } },
+    },
   });
 
   if (!account || !account.passwordHash) {
@@ -172,6 +181,134 @@ async function startSession(
   return { clientId, accountId, unitId, name };
 }
 
+// ── Login com Google ────────────────────────────────────────
+
+/**
+ * Liga (ou inicia sessão de) uma conta a partir de um perfil Google já
+ * verificado pelo `exchangeCodeForProfile`.
+ *
+ * Três casos, por esta ordem:
+ * 1. Já existe conta com este `googleId` → é a mesma pessoa, entra.
+ * 2. Existe conta com este e-mail mas sem `googleId` (criada por password) →
+ *    liga o Google a essa conta em vez de criar uma duplicada.
+ * 3. Nenhuma das duas → não há telefone no perfil Google e o `Client` exige
+ *    um, por isso devolve `needsPhone: true` em vez de criar já a conta;
+ *    quem chama guarda o perfil num cookie curto e pede o telefone antes de
+ *    concluir com `completeGoogleSignup`.
+ */
+export async function loginOrLinkGoogle(profile: {
+  googleId: string;
+  email: string;
+  firstName: string;
+  lastName?: string;
+}): Promise<
+  { needsPhone: true } | ({ needsPhone: false } & ClientSessionInfo)
+> {
+  const email = profile.email.trim().toLowerCase();
+
+  const byGoogleId = await prisma.clientAccount.findUnique({
+    where: { googleId: profile.googleId },
+    include: {
+      client: { select: { id: true, unitId: true, firstName: true } },
+    },
+  });
+  if (byGoogleId) {
+    await prisma.clientAccount.update({
+      where: { id: byGoogleId.id },
+      data: { lastLoginAt: new Date() },
+    });
+    const session = await startSession(
+      byGoogleId.id,
+      byGoogleId.client.id,
+      byGoogleId.client.unitId,
+      byGoogleId.client.firstName,
+    );
+    return { needsPhone: false, ...session };
+  }
+
+  const byEmail = await prisma.clientAccount.findUnique({
+    where: { email },
+    include: {
+      client: { select: { id: true, unitId: true, firstName: true } },
+    },
+  });
+  if (byEmail) {
+    await prisma.clientAccount.update({
+      where: { id: byEmail.id },
+      data: { googleId: profile.googleId, lastLoginAt: new Date() },
+    });
+    const session = await startSession(
+      byEmail.id,
+      byEmail.client.id,
+      byEmail.client.unitId,
+      byEmail.client.firstName,
+    );
+    return { needsPhone: false, ...session };
+  }
+
+  return { needsPhone: true };
+}
+
+/**
+ * Conclui o registo iniciado por Google depois de a pessoa indicar o
+ * telefone (o Google não o fornece). Mesma lógica de ligação por telefone
+ * existente do `registerClient` — se já houver ficha com esse número na
+ * unidade, liga-se a ela em vez de duplicar.
+ */
+export async function completeGoogleSignup(input: {
+  unitId: string;
+  googleId: string;
+  email: string;
+  firstName: string;
+  lastName?: string;
+  phone: string;
+}): Promise<ClientSessionInfo> {
+  const email = input.email.trim().toLowerCase();
+  const phone = input.phone.trim();
+
+  const existingAccount = await prisma.clientAccount.findUnique({
+    where: { email },
+  });
+  if (existingAccount) {
+    throw new ValidationError("Já existe uma conta com este e-mail.");
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    let client = await tx.client.findFirst({
+      where: { unitId: input.unitId, phone, deletedAt: null },
+    });
+
+    if (!client) {
+      client = await tx.client.create({
+        data: {
+          unitId: input.unitId,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          email,
+          phone,
+          status: "LEAD",
+          source: "WEBSITE",
+        },
+      });
+    } else if (!client.email) {
+      await tx.client.update({ where: { id: client.id }, data: { email } });
+    }
+
+    const account = await tx.clientAccount.create({
+      data: { clientId: client.id, email, googleId: input.googleId },
+    });
+
+    return { client, account };
+  });
+
+  return startSession(
+    result.account.id,
+    result.client.id,
+    input.unitId,
+    result.client.firstName,
+  );
+}
+
 export async function logoutClient(): Promise<void> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
@@ -196,7 +333,16 @@ export async function getClientSession(): Promise<ClientSessionInfo | null> {
     where: { sessionToken: hashToken(token) },
     include: {
       clientAccount: {
-        include: { client: { select: { id: true, unitId: true, firstName: true, deletedAt: true } } },
+        include: {
+          client: {
+            select: {
+              id: true,
+              unitId: true,
+              firstName: true,
+              deletedAt: true,
+            },
+          },
+        },
       },
     },
   });
