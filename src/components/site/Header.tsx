@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
-import { NAV } from "@/lib/site-config";
+import { NAV, SITE, WA_MESSAGES } from "@/lib/site-config";
+import { whatsappLink } from "@/lib/format";
 
 /**
  * Cabeçalho do site público.
@@ -48,9 +49,16 @@ export function Header({ loggedIn }: { loggedIn: boolean }) {
       }`}
     >
       <div className="container-luxe flex items-center justify-between py-4">
-        <nav className="hidden flex-1 items-center gap-7 lg:flex" aria-label="Principal">
+        <nav
+          className="hidden flex-1 items-center gap-7 lg:flex"
+          aria-label="Principal"
+        >
           {NAV.slice(0, 4).map((item) => (
-            <NavLink key={item.href} href={item.href} active={pathname === item.href}>
+            <NavLink
+              key={item.href}
+              href={item.href}
+              active={pathname === item.href}
+            >
               {item.label}
             </NavLink>
           ))}
@@ -61,9 +69,16 @@ export function Header({ loggedIn }: { loggedIn: boolean }) {
         </div>
 
         <div className="flex flex-1 items-center justify-end gap-5">
-          <nav className="hidden items-center gap-7 lg:flex" aria-label="Secundária">
+          <nav
+            className="hidden items-center gap-7 lg:flex"
+            aria-label="Secundária"
+          >
             {NAV.slice(4).map((item) => (
-              <NavLink key={item.href} href={item.href} active={pathname === item.href}>
+              <NavLink
+                key={item.href}
+                href={item.href}
+                active={pathname === item.href}
+              >
                 {item.label}
               </NavLink>
             ))}
@@ -93,21 +108,34 @@ export function Header({ loggedIn }: { loggedIn: boolean }) {
           open ? "max-h-[520px]" : "max-h-0"
         }`}
       >
-        <nav className="container-luxe flex flex-col gap-1 py-4" aria-label="Menu mobile">
+        <nav
+          className="container-luxe flex flex-col gap-1 py-4"
+          aria-label="Menu mobile"
+        >
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={`border-onyx/5 border-b py-3 text-sm tracking-[0.15em] uppercase transition ${
-                pathname === item.href ? "text-gold-deep" : "text-onyx/70 hover:text-onyx"
+                pathname === item.href
+                  ? "text-gold-deep"
+                  : "text-onyx/70 hover:text-onyx"
               }`}
             >
               {item.label}
             </Link>
           ))}
-          <Link href="/agendamento" className="btn-gold mt-4">
+          {/* Enquanto a cliente não puder marcar sozinha no site, o botão tem
+              de levar a algum lado onde ela consiga mesmo marcar — o WhatsApp.
+              Apontava para /agendamento, que nunca existiu nesta app. */}
+          <a
+            href={whatsappLink(SITE.whatsapp, WA_MESSAGES.agendar)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-gold mt-4"
+          >
             Agendar horário
-          </Link>
+          </a>
           <Link href={accountHref} className="btn-outline mt-2">
             {loggedIn ? "A minha conta" : "Entrar"}
           </Link>
@@ -140,7 +168,15 @@ function NavLink({
 
 function UserIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      aria-hidden
+    >
       <circle cx="12" cy="8" r="3.4" />
       <path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" strokeLinecap="round" />
     </svg>
@@ -148,14 +184,30 @@ function UserIcon() {
 }
 function MenuIcon() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
+    <svg
+      width="26"
+      height="26"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      aria-hidden
+    >
       <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
     </svg>
   );
 }
 function CloseIcon() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
+    <svg
+      width="26"
+      height="26"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      aria-hidden
+    >
       <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
     </svg>
   );

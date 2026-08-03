@@ -81,6 +81,51 @@ export async function getPublicServiceBySlug(
   return service ? toPublicService(service) : null;
 }
 
+// ── Programa de fidelidade ───────────────────────────────────
+
+export interface PublicReward {
+  name: string;
+  description: string;
+  valueCents: number;
+}
+
+export interface PublicLoyaltyProgram {
+  name: string;
+  stampsRequired: number;
+  termsText: string | null;
+  rewardValidDays: number;
+  rewards: PublicReward[];
+}
+
+/**
+ * Lê o programa tal como está configurado no CRM — a página pública nunca
+ * deve prometer uma coisa e o sistema fazer outra. Devolve `null` se o
+ * programa estiver desligado; nesse caso a página não deve aparecer.
+ */
+export async function getPublicLoyaltyProgram(): Promise<PublicLoyaltyProgram | null> {
+  const unitId = await getUnitId();
+  const program = await prisma.loyaltyProgram.findUnique({
+    where: { unitId },
+    include: {
+      rewards: { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
+    },
+  });
+
+  if (!program || !program.isActive) return null;
+
+  return {
+    name: program.name,
+    stampsRequired: program.stampsRequired,
+    termsText: program.termsText,
+    rewardValidDays: program.rewardValidDays,
+    rewards: program.rewards.map((r) => ({
+      name: r.name,
+      description: r.description ?? "",
+      valueCents: r.valueCents,
+    })),
+  };
+}
+
 // ── Depoimentos e galeria ────────────────────────────────────
 //
 // Ainda estáticos — não há necessidade de tabela enquanto for a equipa a
@@ -135,12 +180,58 @@ export interface GalleryItem {
 }
 
 export const GALLERY: GalleryItem[] = [
-  { id: "g1", title: "Trabalho AYAHA MAISON", category: "Volume", image: "/images/cilios-real-1.jpg" },
-  { id: "g2", title: "Detalhe do olhar", category: "Efeitos", image: "/images/cilios-real-2.jpg" },
-  { id: "g3", title: "Clássico Natural", category: "Clássico", image: "https://images.unsplash.com/photo-1548902378-2ec44c906391?auto=format&fit=crop&w=800&q=80" },
-  { id: "g4", title: "Olhar Marcante", category: "Volume", image: "https://images.unsplash.com/photo-1633346152343-5486573d3d50?auto=format&fit=crop&w=800&q=80" },
-  { id: "g5", title: "Efeito Esquilo", category: "Efeitos", image: "https://images.unsplash.com/photo-1590556409324-aa1d726e5c3c?auto=format&fit=crop&w=800&q=80" },
-  { id: "g6", title: "Detalhe do acabamento", category: "Efeitos", image: "https://images.unsplash.com/photo-1633276115947-8d35f394a309?auto=format&fit=crop&w=800&q=80" },
-  { id: "g7", title: "Aplicação em detalhe", category: "Processo", image: "https://images.unsplash.com/photo-1674049406467-824ea37c7184?auto=format&fit=crop&w=800&q=80" },
-  { id: "g8", title: "Experiência premium", category: "Efeitos", image: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=800&q=80" },
+  {
+    id: "g1",
+    title: "Trabalho AYAHA MAISON",
+    category: "Volume",
+    image: "/images/cilios-real-1.jpg",
+  },
+  {
+    id: "g2",
+    title: "Detalhe do olhar",
+    category: "Efeitos",
+    image: "/images/cilios-real-2.jpg",
+  },
+  {
+    id: "g3",
+    title: "Clássico Natural",
+    category: "Clássico",
+    image:
+      "https://images.unsplash.com/photo-1548902378-2ec44c906391?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    id: "g4",
+    title: "Olhar Marcante",
+    category: "Volume",
+    image:
+      "https://images.unsplash.com/photo-1633346152343-5486573d3d50?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    id: "g5",
+    title: "Efeito Esquilo",
+    category: "Efeitos",
+    image:
+      "https://images.unsplash.com/photo-1590556409324-aa1d726e5c3c?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    id: "g6",
+    title: "Detalhe do acabamento",
+    category: "Efeitos",
+    image:
+      "https://images.unsplash.com/photo-1633276115947-8d35f394a309?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    id: "g7",
+    title: "Aplicação em detalhe",
+    category: "Processo",
+    image:
+      "https://images.unsplash.com/photo-1674049406467-824ea37c7184?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    id: "g8",
+    title: "Experiência premium",
+    category: "Efeitos",
+    image:
+      "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=800&q=80",
+  },
 ];
