@@ -429,3 +429,43 @@ html {
 .animate-drift {
   animation: drift 9s ease-in-out infinite;
 }
+
+/*
+ * Site público — sempre em modo claro.
+ *
+ * O site foi desenhado como peça editorial clara (fundo marfim, texto
+ * ónix), com secções escuras onde isso é uma escolha de design — o herói,
+ * a faixa de fidelidade. Os seus componentes usam as cores da marca
+ * diretamente (`text-onyx`, `bg-ivory`), não os tokens semânticos.
+ *
+ * Sem isto, um telemóvel em modo escuro trocava `--bg` para ónix mas o
+ * texto continuava ónix: página preta com letras pretas, ilegível. É o
+ * que acontecia em produção a quem tem o telemóvel em modo escuro — ou
+ * seja, a maioria das clientes.
+ *
+ * O CRM (`/app`) e a área da cliente (`/conta`) continuam a acompanhar a
+ * preferência do sistema: esses usam os tokens semânticos como deve ser.
+ */
+.site-light {
+  --bg: var(--ivory);
+  --surface: var(--pearl);
+  --surface-2: #ffffff;
+  --border: #e5e1da;
+  --text: var(--onyx);
+  --text-muted: #6b6b6b;
+  --text-subtle: var(--taupe);
+  --accent-hover: #b39859;
+  --success: #2f7a4f;
+  --success-bg: #e8f3ec;
+  --warning: #b8860b;
+  --warning-bg: #fbf3e0;
+  --danger: #a33a3a;
+  --danger-bg: #fbeaea;
+  --info: #3a6ea5;
+  --info-bg: #e9f0f7;
+  --neutral: #8a8a8a;
+  --neutral-bg: #f0efec;
+
+  background-color: var(--ivory);
+  color: var(--onyx);
+}

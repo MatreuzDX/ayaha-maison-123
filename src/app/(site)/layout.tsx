@@ -64,7 +64,10 @@ export default async function SiteLayout({
   };
 
   return (
-    <>
+    /* `site-light`: o site público é sempre claro. Os seus componentes usam
+       as cores da marca diretamente, por isso num telemóvel em modo escuro
+       o fundo escurecia e o texto ficava preto sobre preto. Ver globals.css. */
+    <div className="site-light">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -79,6 +82,6 @@ export default async function SiteLayout({
       </main>
       <Footer />
       <WhatsappFloat />
-    </>
+    </div>
   );
 }
