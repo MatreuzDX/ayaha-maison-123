@@ -4,8 +4,15 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { ConfirmAction } from "@/components/ui/confirm";
-import { approveClientAccountAction, deleteClientAction } from "./actions";
-import type { FormState } from "./actions";
+import { Hint, Input, Label } from "@/components/ui/field";
+import {
+  approveClientAccountAction,
+  deleteClientAction,
+  revokeClientAccessAction,
+  setClientPasswordAction,
+  updateClientEmailAction,
+} from "./actions";
+import type { AccountFormState, FormState } from "./actions";
 
 /**
  * Apagar uma ficha de cliente.
@@ -80,5 +87,130 @@ export function ApproveAccountButton({ clientId }: { clientId: string }) {
       )}
       <ApproveSubmitButton />
     </form>
+  );
+}
+
+// ── Gestão do acesso ao portal ───────────────────────────────
+
+function SmallSubmit({ label, busy }: { label: string; busy: string }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" size="sm" variant="secondary" disabled={pending}>
+      {pending ? busy : label}
+    </Button>
+  );
+}
+
+function Feedback({ state }: { state: AccountFormState }) {
+  if (state.error) {
+    return <p className="text-sm text-[var(--danger)]">{state.error}</p>;
+  }
+  if (state.success) {
+    return <p className="text-sm text-[var(--success)]">{state.success}</p>;
+  }
+  return null;
+}
+
+/** Corrigir o e-mail com que a cliente entra. */
+export function ChangeClientEmailForm({
+  clientId,
+  currentEmail,
+}: {
+  clientId: string;
+  currentEmail: string;
+}) {
+  const [state, formAction] = useActionState<AccountFormState, FormData>(
+    updateClientEmailAction,
+    {},
+  );
+
+  return (
+    <form action={formAction} className="space-y-2">
+      <input type="hidden" name="clientId" value={clientId} />
+      <Label htmlFor={`email-${clientId}`}>E-mail de acesso</Label>
+      <Input
+        id={`email-${clientId}`}
+        name="email"
+        type="email"
+        defaultValue={currentEmail}
+        required
+      />
+      <Feedback state={state} />
+      <SmallSubmit label="Alterar e-mail" busy="A alterar…" />
+    </form>
+  );
+}
+
+/**
+ * Definir uma palavra-passe nova.
+ *
+ * A cliente liga a dizer que não consegue entrar, combina-se uma
+ * palavra-passe, escreve-se aqui. Não existe forma de ver a que ela tinha —
+ * só fica guardado um hash, que não se desfaz.
+ */
+export function SetClientPasswordForm({
+  clientId,
+  minLength,
+}: {
+  clientId: string;
+  minLength: number;
+}) {
+  const [state, formAction] = useActionState<AccountFormState, FormData>(
+    setClientPasswordAction,
+    {},
+  );
+
+  return (
+    <form action={formAction} className="space-y-2">
+      <input type="hidden" name="clientId" value={clientId} />
+      <Label htmlFor={`password-${clientId}`}>Definir palavra-passe nova</Label>
+      <Input
+        id={`password-${clientId}`}
+        name="password"
+        type="text"
+        autoComplete="off"
+        placeholder={`Mínimo ${minLength} caracteres`}
+        required
+      />
+      <Hint>
+        Fecha as sessões abertas. Combine-a com a cliente e diga-lha — depois de
+        guardada, ninguém a consegue ver.
+      </Hint>
+      <Feedback state={state} />
+      <SmallSubmit label="Guardar palavra-passe" busy="A guardar…" />
+    </form>
+  );
+}
+
+/** Cortar o acesso: tira palavra-passe, desliga o Google, fecha sessões. */
+export function RevokeAccessButton({
+  clientId,
+  clientName,
+}: {
+  clientId: string;
+  clientName: string;
+}) {
+  return (
+    <ConfirmAction
+      action={revokeClientAccessAction}
+      triggerLabel="Remover acesso"
+      triggerVariant="ghost"
+      title={`Remover o acesso de ${clientName}?`}
+      description="A ficha e o histórico ficam — só o acesso ao portal é cortado."
+      confirmLabel="Remover acesso"
+      danger
+      hidden={{ clientId }}
+    >
+      <div className="space-y-2 text-sm text-[var(--text-muted)]">
+        <p>
+          Fica sem palavra-passe e sem entrada pelo Google, e as sessões abertas
+          fecham-se.
+        </p>
+        <p>
+          Se mudar de ideias, basta definir uma palavra-passe nova aqui na ficha
+          — não é preciso a cliente registar-se outra vez.
+        </p>
+      </div>
+    </ConfirmAction>
   );
 }

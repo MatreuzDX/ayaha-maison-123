@@ -44,7 +44,9 @@ export const IS_DEMO = demoFlag && !isProduction;
 
 /**
  * Comprimento mínimo de palavra-passe.
- * 10 caracteres é a regra real; em demo baixa para 6 para permitir
- * credenciais de teste fáceis de escrever.
+ *
+ * 8 caracteres é o mínimo real — decisão da fundadora, para não afastar
+ * clientes logo no registo. Em demo baixa para 6, para as credenciais de
+ * teste serem fáceis de escrever.
  */
-export const MIN_PASSWORD_LENGTH = IS_DEMO ? 6 : 10;
+export const MIN_PASSWORD_LENGTH = IS_DEMO ? 6 : 8;

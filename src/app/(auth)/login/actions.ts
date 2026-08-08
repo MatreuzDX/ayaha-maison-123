@@ -8,13 +8,21 @@ import { loginClient } from "@/server/client-auth";
 import { AppError } from "@/server/errors";
 
 const schema = z.object({
-  email: z.string().trim().min(1, "Indique o e-mail.").email("E-mail inválido."),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Indique o e-mail.")
+    .email("E-mail inválido."),
   password: z.string().min(1, "Indique a palavra-passe."),
 });
 
 export interface LoginState {
   error?: string;
   fieldErrors?: { email?: string; password?: string };
+  /** O e-mail escrito, devolvido a cada erro — o React limpa o formulário
+   *  depois de uma Server Action, e reescrever o e-mail a cada tentativa
+   *  falhada é irritante sem qualquer ganho. A palavra-passe nunca volta. */
+  email?: string;
 }
 
 /** "/conta/x" continua dentro da zona da cliente; qualquer outra coisa não. */
@@ -38,6 +46,9 @@ export async function loginAction(
   _prev: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
+  const emailRaw = formData.get("email");
+  const email = typeof emailRaw === "string" ? emailRaw : undefined;
+
   const parsed = schema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -46,6 +57,7 @@ export async function loginAction(
   if (!parsed.success) {
     const flat = z.flattenError(parsed.error);
     return {
+      email,
       fieldErrors: {
         email: flat.fieldErrors.email?.[0],
         password: flat.fieldErrors.password?.[0],
@@ -73,9 +85,10 @@ export async function loginAction(
       await loginClient(parsed.data.email, parsed.data.password);
       destination = proximo && isClientPath(proximo) ? proximo : "/conta";
     } catch (clientErr) {
-      if (clientErr instanceof AppError) return { error: clientErr.message };
+      if (clientErr instanceof AppError)
+        return { email, error: clientErr.message };
       console.error("[login:client]", clientErr);
-      return { error: "Não foi possível entrar. Tente novamente." };
+      return { email, error: "Não foi possível entrar. Tente novamente." };
     }
   }
 

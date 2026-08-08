@@ -1,6 +1,6 @@
 # Stack e ferramentas — AYAHA MAISON
 
-**Levantamento feito a 4 de agosto de 2026.**
+**Levantamento feito a 8 de agosto de 2026.**
 
 Este ficheiro existe para uma coisa: se amanhã começares um projeto parecido
 (ou voltares a este depois de meses), abres isto, dás ao agente, e ele sabe o
@@ -8,7 +8,7 @@ que instalar, o que ligar e onde estão as armadilhas — sem repetires a
 descoberta toda.
 
 > **Como usar:** diz ao agente
-> *"lê `docs/stack-2026-08-04/README.md` e prepara o ambiente"*.
+> *"lê `docs/stack-2026-08-08/README.md` e prepara o ambiente"*.
 > A secção [Arranque do zero](#arranque-do-zero) é a receita passo a passo.
 
 ---

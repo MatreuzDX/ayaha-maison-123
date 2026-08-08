@@ -15,6 +15,8 @@
 
 import type { ClientStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/server/db";
+import { hashPassword } from "@/server/auth";
+import { MIN_PASSWORD_LENGTH } from "@/lib/demo";
 import { diffFields, recordAudit } from "@/server/audit";
 import { recordTimeline } from "@/server/timeline";
 import { ConflictError, NotFoundError, ValidationError } from "@/server/errors";
@@ -233,14 +235,35 @@ export async function getClient(actor: Actor, clientId: string) {
         include: { stamps: true },
       },
       account: {
-        select: { id: true, email: true, approvedAt: true },
+        select: {
+          id: true,
+          email: true,
+          approvedAt: true,
+          passwordHash: true,
+          googleId: true,
+        },
       },
     },
   });
 
   if (!client) throw new NotFoundError("Cliente");
 
-  return client;
+  // O hash da palavra-passe não sai daqui. Quem chama só precisa de saber
+  // SE existe palavra-passe, nunca qual é — e assim não há forma de, por
+  // descuido, acabar a mandá-lo para o browser dentro de um componente.
+  const { account, ...restOfClient } = client;
+  return {
+    ...restOfClient,
+    account: account
+      ? {
+          id: account.id,
+          email: account.email,
+          approvedAt: account.approvedAt,
+          hasPassword: account.passwordHash !== null,
+          hasGoogle: account.googleId !== null,
+        }
+      : null,
+  };
 }
 
 /** Contadores para os cartões de topo da listagem. */
@@ -502,6 +525,151 @@ export async function approveClientAccount(actor: Actor, clientId: string) {
     });
 
     return approved;
+  });
+}
+
+// ── Gestão do acesso ao portal ───────────────────────────────
+//
+// A equipa gere o acesso da cliente, mas NUNCA vê a palavra-passe. Não é
+// uma opção de interface — é uma impossibilidade: só fica guardado um hash
+// Argon2id, que não se desfaz. Nem a equipa, nem quem tiver acesso à base
+// de dados, consegue ler a palavra-passe de ninguém.
+//
+// O que a equipa pode fazer: corrigir o e-mail, definir uma palavra-passe
+// nova (quando a cliente pede por telefone ou WhatsApp), e cortar o acesso.
+
+/** Carrega a ficha + conta, já com as permissões e o escopo verificados. */
+async function loadAccountForManagement(actor: Actor, clientId: string) {
+  assertCan(actor, "client:update");
+
+  const client = await prisma.client.findFirst({
+    where: { unitId: actor.unitId, id: clientId, deletedAt: null },
+    include: { account: true },
+  });
+  if (!client) throw new NotFoundError("Cliente");
+  assertOwns(actor, "client:update", client.ownerProfessionalId);
+
+  if (!client.account) throw new NotFoundError("Conta de acesso ao portal");
+  return { client, account: client.account };
+}
+
+export async function updateClientAccountEmail(
+  actor: Actor,
+  clientId: string,
+  newEmail: string,
+) {
+  const { account } = await loadAccountForManagement(actor, clientId);
+
+  const email = newEmail.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    throw new ValidationError("E-mail inválido.");
+  }
+  if (email === account.email) return account;
+
+  const clash = await prisma.clientAccount.findUnique({ where: { email } });
+  if (clash) {
+    throw new ConflictError(
+      "ACCOUNT_DUPLICATE_EMAIL",
+      "Já existe outra conta com este e-mail.",
+    );
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.clientAccount.update({
+      where: { id: account.id },
+      data: { email },
+    });
+
+    await recordAudit(tx, actor, {
+      action: "UPDATE",
+      entityType: "ClientAccount",
+      entityId: account.id,
+      before: { email: account.email },
+      after: { email: updated.email },
+    });
+
+    return updated;
+  });
+}
+
+/**
+ * Define uma palavra-passe nova para a cliente.
+ *
+ * Serve o caso real: a cliente liga a dizer que não consegue entrar e
+ * combina uma palavra-passe nova. Todas as sessões abertas são fechadas —
+ * se alguém tinha entrado indevidamente, deixa de estar lá dentro.
+ */
+export async function setClientAccountPassword(
+  actor: Actor,
+  clientId: string,
+  newPassword: string,
+) {
+  const { account } = await loadAccountForManagement(actor, clientId);
+
+  if (newPassword.length < MIN_PASSWORD_LENGTH) {
+    throw new ValidationError(
+      `A palavra-passe tem de ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`,
+    );
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.clientAccount.update({
+      where: { id: account.id },
+      data: { passwordHash },
+    });
+    await tx.clientSession.deleteMany({
+      where: { clientAccountId: account.id },
+    });
+
+    // O hash nunca entra no registo de auditoria — fica só o facto de ter
+    // sido mudada, por quem e quando.
+    await recordAudit(tx, actor, {
+      action: "UPDATE",
+      entityType: "ClientAccount",
+      entityId: account.id,
+      after: { passwordChanged: true },
+    });
+
+    return updated;
+  });
+}
+
+/**
+ * Corta o acesso da cliente ao portal, sem apagar a ficha nem o histórico.
+ *
+ * Tira a palavra-passe, desliga o Google (senão continuava a entrar por
+ * lá) e fecha as sessões abertas. A conta e o e-mail ficam — é reversível
+ * definindo uma palavra-passe nova.
+ */
+export async function revokeClientAccountAccess(
+  actor: Actor,
+  clientId: string,
+) {
+  const { account } = await loadAccountForManagement(actor, clientId);
+
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.clientAccount.update({
+      where: { id: account.id },
+      data: { passwordHash: null, googleId: null },
+    });
+    await tx.clientSession.deleteMany({
+      where: { clientAccountId: account.id },
+    });
+
+    await recordAudit(tx, actor, {
+      action: "UPDATE",
+      entityType: "ClientAccount",
+      entityId: account.id,
+      before: {
+        hadPassword: account.passwordHash !== null,
+        hadGoogle: account.googleId !== null,
+      },
+      after: { accessRevoked: true },
+    });
+
+    return updated;
   });
 }
 

@@ -22,7 +22,14 @@ import {
   whatsappLink,
 } from "@/lib/format";
 import { formatDateTime, formatRelativeDays } from "@/lib/datetime";
-import { ApproveAccountButton, DeleteClientButton } from "../client-actions";
+import {
+  ApproveAccountButton,
+  ChangeClientEmailForm,
+  DeleteClientButton,
+  RevokeAccessButton,
+  SetClientPasswordForm,
+} from "../client-actions";
+import { MIN_PASSWORD_LENGTH } from "@/lib/demo";
 
 export const metadata: Metadata = { title: "Ficha de cliente" };
 
@@ -51,6 +58,7 @@ export default async function ClienteDetalhePage({
   });
 
   const activeCard = client.loyaltyCards[0];
+  const canUpdate = can(actor, "client:update");
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
@@ -186,17 +194,49 @@ export default async function ClienteDetalhePage({
           </Card>
 
           {client.account && (
-            <Card className="space-y-2">
-              <h2 className="text-lg">Conta do portal</h2>
-              <p className="text-sm text-[var(--text-muted)]">
-                {client.account.email}
-              </p>
-              {client.account.approvedAt ? (
-                <Badge tone="success">Ativa</Badge>
-              ) : (
-                <div className="space-y-2">
+            <Card className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-lg">Conta do portal</h2>
+                {client.account.approvedAt ? (
+                  <Badge tone="success">Ativa</Badge>
+                ) : (
                   <Badge tone="warning">Pendente de aprovação</Badge>
-                  <ApproveAccountButton clientId={client.id} />
+                )}
+              </div>
+
+              {!client.account.approvedAt && (
+                <ApproveAccountButton clientId={client.id} />
+              )}
+
+              <div className="flex flex-wrap gap-2">
+                <Badge
+                  tone={client.account.hasPassword ? "neutral" : "warning"}
+                >
+                  {client.account.hasPassword
+                    ? "Tem palavra-passe"
+                    : "Sem palavra-passe"}
+                </Badge>
+                {client.account.hasGoogle && (
+                  <Badge tone="info">Entra com Google</Badge>
+                )}
+              </div>
+
+              {canUpdate && (
+                <div className="space-y-4 border-t border-[var(--border)] pt-4">
+                  <ChangeClientEmailForm
+                    clientId={client.id}
+                    currentEmail={client.account.email}
+                  />
+                  <SetClientPasswordForm
+                    clientId={client.id}
+                    minLength={MIN_PASSWORD_LENGTH}
+                  />
+                  {(client.account.hasPassword || client.account.hasGoogle) && (
+                    <RevokeAccessButton
+                      clientId={client.id}
+                      clientName={name}
+                    />
+                  )}
                 </div>
               )}
             </Card>

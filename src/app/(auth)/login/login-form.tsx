@@ -43,6 +43,7 @@ export function LoginForm({ proximo }: { proximo?: string }) {
             id="email"
             name="email"
             type="email"
+            defaultValue={state.email ?? ""}
             autoComplete="username"
             autoFocus
             required

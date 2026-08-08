@@ -9,7 +9,10 @@ import {
   approveClientAccount,
   createClient,
   deleteClient,
+  revokeClientAccountAccess,
+  setClientAccountPassword,
   updateClient,
+  updateClientAccountEmail,
 } from "@/server/services/client.service";
 
 /**
@@ -133,6 +136,84 @@ export async function approveClientAccountAction(
     if (err instanceof AppError) return { error: err.message };
     console.error("[approveClientAccount]", err);
     return { error: "Não foi possível aprovar o acesso." };
+  }
+
+  revalidatePath(`/app/clientes/${clientId}`);
+  return {};
+}
+
+// ── Gestão do acesso da cliente ao portal ────────────────────
+
+export interface AccountFormState {
+  error?: string;
+  success?: string;
+}
+
+export async function updateClientEmailAction(
+  _prev: AccountFormState,
+  form: FormData,
+): Promise<AccountFormState> {
+  const clientId = form.get("clientId");
+  const email = form.get("email");
+  if (typeof clientId !== "string") return { error: "Ficha não identificada." };
+  if (typeof email !== "string" || !email.trim()) {
+    return { error: "Indique o novo e-mail." };
+  }
+
+  try {
+    const actor = await requireActor();
+    await updateClientAccountEmail(actor, clientId, email);
+  } catch (err) {
+    if (err instanceof AppError) return { error: err.message };
+    console.error("[updateClientAccountEmail]", err);
+    return { error: "Não foi possível alterar o e-mail." };
+  }
+
+  revalidatePath(`/app/clientes/${clientId}`);
+  return { success: "E-mail alterado." };
+}
+
+export async function setClientPasswordAction(
+  _prev: AccountFormState,
+  form: FormData,
+): Promise<AccountFormState> {
+  const clientId = form.get("clientId");
+  const password = form.get("password");
+  if (typeof clientId !== "string") return { error: "Ficha não identificada." };
+  if (typeof password !== "string" || !password) {
+    return { error: "Indique a nova palavra-passe." };
+  }
+
+  try {
+    const actor = await requireActor();
+    await setClientAccountPassword(actor, clientId, password);
+  } catch (err) {
+    if (err instanceof AppError) return { error: err.message };
+    console.error("[setClientAccountPassword]", err);
+    return { error: "Não foi possível definir a palavra-passe." };
+  }
+
+  revalidatePath(`/app/clientes/${clientId}`);
+  return {
+    success:
+      "Palavra-passe definida. Diga-a à cliente — a partir de agora é com ela que entra.",
+  };
+}
+
+export async function revokeClientAccessAction(
+  _prev: FormState,
+  form: FormData,
+): Promise<FormState> {
+  const clientId = form.get("clientId");
+  if (typeof clientId !== "string") return { error: "Ficha não identificada." };
+
+  try {
+    const actor = await requireActor();
+    await revokeClientAccountAccess(actor, clientId);
+  } catch (err) {
+    if (err instanceof AppError) return { error: err.message };
+    console.error("[revokeClientAccountAccess]", err);
+    return { error: "Não foi possível remover o acesso." };
   }
 
   revalidatePath(`/app/clientes/${clientId}`);

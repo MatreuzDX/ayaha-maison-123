@@ -41,6 +41,7 @@ export function RegisterForm() {
             <Input
               id="firstName"
               name="firstName"
+              defaultValue={state.values?.firstName ?? ""}
               autoComplete="given-name"
               autoFocus
               required
@@ -55,7 +56,12 @@ export function RegisterForm() {
           </div>
           <div>
             <Label htmlFor="lastName">Apelido</Label>
-            <Input id="lastName" name="lastName" autoComplete="family-name" />
+            <Input
+              id="lastName"
+              name="lastName"
+              defaultValue={state.values?.lastName ?? ""}
+              autoComplete="family-name"
+            />
           </div>
         </div>
 
@@ -67,6 +73,7 @@ export function RegisterForm() {
             id="email"
             name="email"
             type="email"
+            defaultValue={state.values?.email ?? ""}
             autoComplete="email"
             required
             aria-invalid={Boolean(state.fieldErrors?.email)}
@@ -85,6 +92,7 @@ export function RegisterForm() {
             id="phone"
             name="phone"
             type="tel"
+            defaultValue={state.values?.phone ?? ""}
             autoComplete="tel"
             placeholder="933 055 502"
             required
