@@ -82,7 +82,7 @@ export interface AuditEntry {
 /** Grava uma entrada de auditoria. Chamar sempre com o `tx` da operação. */
 export async function recordAudit(
   tx: PrismaTx,
-  actor: Pick<Actor, "userId" | "unitId"> | null,
+  actor: { userId: string | null; unitId: string } | null,
   entry: AuditEntry,
   ctx: AuditContext = {},
 ): Promise<void> {

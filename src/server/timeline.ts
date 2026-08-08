@@ -10,7 +10,6 @@
  */
 
 import type { PrismaTx } from "./db";
-import type { Actor } from "./permissions";
 
 export type TimelineType =
   | "CLIENT_CREATED"
@@ -47,7 +46,7 @@ export interface TimelineInput {
  */
 export async function recordTimeline(
   tx: PrismaTx,
-  actor: Pick<Actor, "userId" | "unitId"> | null,
+  actor: { userId: string | null; unitId: string } | null,
   entry: TimelineInput,
   actorName?: string | null,
 ): Promise<void> {

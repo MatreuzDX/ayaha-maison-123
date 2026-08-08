@@ -177,9 +177,36 @@ export interface GalleryItem {
   title: string;
   category: string;
   image: string;
+  /**
+   * Se existir, o item é um vídeo e `image` passa a ser a capa. Fica em
+   * silêncio e só carrega quando alguém carrega no play — um vídeo a
+   * arrancar sozinho num telemóvel gasta dados de quem só queria ver fotos.
+   */
+  video?: string;
 }
 
 export const GALLERY: GalleryItem[] = [
+  // Trabalho real, agosto de 2026 — as primeiras entradas são as mais
+  // recentes de propósito: é o que a visitante vê primeiro.
+  {
+    id: "g-cliente-video-1",
+    title: "Resultado em vídeo",
+    category: "Trabalho real",
+    image: "/images/galeria/cliente-video-capa.jpg",
+    video: "/videos/cliente-resultado-1.mp4",
+  },
+  {
+    id: "g-cliente-1",
+    title: "Volume · resultado final",
+    category: "Trabalho real",
+    image: "/images/galeria/cliente-resultado-1.jpg",
+  },
+  {
+    id: "g-cliente-2",
+    title: "Aplicação em curso",
+    category: "Trabalho real",
+    image: "/images/galeria/cliente-aplicacao-1.jpg",
+  },
   {
     id: "g1",
     title: "Trabalho AYAHA MAISON",

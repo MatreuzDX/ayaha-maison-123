@@ -114,7 +114,7 @@ export async function getAppointment(actor: Actor, appointmentId: string) {
  * A integração com uma API de mapas fica para a Fase 3 avançada; o modelo
  * `TravelEstimate` já existe para guardar a cache dessas chamadas.
  */
-async function estimateTravelMinutes(
+export async function estimateTravelMinutes(
   unitId: string,
   clientId: string,
 ): Promise<number> {
@@ -138,7 +138,7 @@ async function estimateTravelMinutes(
 }
 
 /** Taxa de deslocação, já com a regra de isenção acima de certo valor. */
-async function travelFeeFor(
+export async function travelFeeFor(
   unitId: string,
   clientId: string,
   subtotalCents: number,
