@@ -8,6 +8,7 @@ import { AppError } from "@/server/errors";
 import {
   approveClientAccount,
   createClient,
+  refuseClientAccount,
   deleteClient,
   revokeClientAccountAccess,
   setClientAccountPassword,
@@ -216,6 +217,27 @@ export async function revokeClientAccessAction(
     return { error: "Não foi possível remover o acesso." };
   }
 
+  revalidatePath(`/app/clientes/${clientId}`);
+  return {};
+}
+
+export async function refuseClientAccountAction(
+  _prev: FormState,
+  form: FormData,
+): Promise<FormState> {
+  const clientId = form.get("clientId");
+  if (typeof clientId !== "string") return { error: "Ficha não identificada." };
+
+  try {
+    const actor = await requireActor();
+    await refuseClientAccount(actor, clientId);
+  } catch (err) {
+    if (err instanceof AppError) return { error: err.message };
+    console.error("[refuseClientAccount]", err);
+    return { error: "Não foi possível recusar o pedido." };
+  }
+
+  revalidatePath("/app");
   revalidatePath(`/app/clientes/${clientId}`);
   return {};
 }

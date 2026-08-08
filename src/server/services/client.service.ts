@@ -24,6 +24,7 @@ import {
   type Actor,
   assertCan,
   assertOwns,
+  can,
   clientScope,
 } from "@/server/permissions";
 import {
@@ -551,6 +552,76 @@ async function loadAccountForManagement(actor: Actor, clientId: string) {
 
   if (!client.account) throw new NotFoundError("Conta de acesso ao portal");
   return { client, account: client.account };
+}
+
+/**
+ * Contas criadas pela própria cliente e ainda por aprovar.
+ *
+ * Alimenta a lista no início do CRM. Sem ela, a equipa só descobria um
+ * pedido novo se por acaso abrisse a ficha da pessoa — e quem se registou
+ * ficava à espera sem ninguém saber.
+ */
+export async function listPendingAccounts(actor: Actor) {
+  if (!can(actor, "client:read")) return [];
+
+  const clients = await prisma.client.findMany({
+    where: {
+      ...clientScope(actor),
+      account: { is: { approvedAt: null } },
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      phone: true,
+      createdAt: true,
+      account: { select: { email: true, createdAt: true } },
+    },
+  });
+
+  return clients.map((c) => ({
+    clientId: c.id,
+    firstName: c.firstName,
+    lastName: c.lastName,
+    phone: c.phone,
+    email: c.account?.email ?? "",
+    requestedAt: c.account?.createdAt ?? c.createdAt,
+  }));
+}
+
+/**
+ * Recusa um pedido de acesso ao portal.
+ *
+ * Apaga a conta de acesso — a pessoa deixa de conseguir entrar e o e-mail
+ * fica livre outra vez. A ficha de cliente FICA: pode ser alguém que a
+ * equipa quer mesmo como contacto, só não com acesso online agora. Para
+ * apagar tudo existe o botão "Apagar" na ficha.
+ */
+export async function refuseClientAccount(actor: Actor, clientId: string) {
+  const { client, account } = await loadAccountForManagement(actor, clientId);
+
+  if (account.approvedAt) {
+    throw new ValidationError(
+      "Esta conta já está aprovada. Use 'Remover acesso' se quiser cortá-la.",
+    );
+  }
+
+  return prisma.$transaction(async (tx) => {
+    await tx.clientSession.deleteMany({
+      where: { clientAccountId: account.id },
+    });
+    await tx.clientAccount.delete({ where: { id: account.id } });
+
+    await recordAudit(tx, actor, {
+      action: "DELETE",
+      entityType: "ClientAccount",
+      entityId: account.id,
+      before: { email: account.email, clientId: client.id },
+    });
+
+    return { email: account.email };
+  });
 }
 
 export async function updateClientAccountEmail(

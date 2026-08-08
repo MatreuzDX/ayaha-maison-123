@@ -4,7 +4,13 @@ import { requireActorPage } from "@/server/auth";
 import { can, clientScope } from "@/server/permissions";
 import { prisma } from "@/server/db";
 import { formatEUR } from "@/lib/money";
-import { lisbonEndOfDay, lisbonStartOfDay, formatDayHeading } from "@/lib/datetime";
+import {
+  lisbonEndOfDay,
+  lisbonStartOfDay,
+  formatDayHeading,
+} from "@/lib/datetime";
+import { listPendingAccounts } from "@/server/services/client.service";
+import { PendingAccounts } from "./pending-accounts";
 
 export const metadata: Metadata = { title: "Início" };
 
@@ -33,7 +39,9 @@ function Kpi({
       <p className="text-xs tracking-wide text-[var(--text-muted)] uppercase">
         {label}
       </p>
-      <p className={`tabular mt-1.5 text-2xl font-medium ${toneClass}`}>{value}</p>
+      <p className={`tabular mt-1.5 text-2xl font-medium ${toneClass}`}>
+        {value}
+      </p>
       {hint && <p className="mt-1 text-xs text-[var(--text-muted)]">{hint}</p>}
     </div>
   );
@@ -45,31 +53,33 @@ export default async function DashboardPage() {
 
   const clientWhere = can(actor, "client:read") ? clientScope(actor) : null;
 
-  const [clientCount, atRiskCount, todayCount, monthRevenue] = await Promise.all([
-    clientWhere ? prisma.client.count({ where: clientWhere }) : 0,
-    clientWhere
-      ? prisma.client.count({ where: { ...clientWhere, status: "AT_RISK" } })
-      : 0,
-    prisma.appointment.count({
-      where: {
-        unitId: actor.unitId,
-        deletedAt: null,
-        startAt: { gte: lisbonStartOfDay(now), lte: lisbonEndOfDay(now) },
-        status: { notIn: ["CANCELLED"] },
-      },
-    }),
-    prisma.appointment.aggregate({
-      where: {
-        unitId: actor.unitId,
-        deletedAt: null,
-        status: "COMPLETED",
-        completedAt: {
-          gte: new Date(now.getFullYear(), now.getMonth(), 1),
+  const [clientCount, atRiskCount, todayCount, monthRevenue, pending] =
+    await Promise.all([
+      clientWhere ? prisma.client.count({ where: clientWhere }) : 0,
+      clientWhere
+        ? prisma.client.count({ where: { ...clientWhere, status: "AT_RISK" } })
+        : 0,
+      prisma.appointment.count({
+        where: {
+          unitId: actor.unitId,
+          deletedAt: null,
+          startAt: { gte: lisbonStartOfDay(now), lte: lisbonEndOfDay(now) },
+          status: { notIn: ["CANCELLED"] },
         },
-      },
-      _sum: { totalCents: true },
-    }),
-  ]);
+      }),
+      prisma.appointment.aggregate({
+        where: {
+          unitId: actor.unitId,
+          deletedAt: null,
+          status: "COMPLETED",
+          completedAt: {
+            gte: new Date(now.getFullYear(), now.getMonth(), 1),
+          },
+        },
+        _sum: { totalCents: true },
+      }),
+      listPendingAccounts(actor),
+    ]);
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-6">
@@ -79,6 +89,10 @@ export default async function DashboardPage() {
           {formatDayHeading(now)}
         </p>
       </div>
+
+      {/* Antes dos indicadores: é o único item do painel que precisa de uma
+          decisão de alguém, e há pessoas à espera do outro lado. */}
+      <PendingAccounts accounts={pending} />
 
       <section aria-labelledby="kpis">
         <h2 id="kpis" className="sr-only">
