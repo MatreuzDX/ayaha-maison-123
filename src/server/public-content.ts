@@ -141,36 +141,20 @@ export interface Testimonial {
   service: string;
 }
 
-export const TESTIMONIALS: Testimonial[] = [
-  {
-    id: "t1",
-    name: "Marina Aguiar",
-    rating: 5,
-    text: "Simplesmente perfeito. O atendimento é impecável e os meus cílios ficaram exatamente como sonhava. Ambiente luxuoso e acolhedor.",
-    service: "Volume Russo",
-  },
-  {
-    id: "t2",
-    name: "Beatriz Lopes",
-    rating: 5,
-    text: "A AYAHA MAISON elevou o padrão. Profissionalismo, higiene e um resultado que dura semanas. Recomendo de olhos fechados.",
-    service: "Fox Eyes",
-  },
-  {
-    id: "t3",
-    name: "Camila Ferraz",
-    rating: 5,
-    text: "Senti-me numa maison de luxo em Paris. Cada detalhe pensado. Já sou cliente fiel e adoro o programa de fidelidade!",
-    service: "Volume Brasileiro",
-  },
-  {
-    id: "t4",
-    name: "Isabela Nunes",
-    rating: 5,
-    text: "O efeito Gatinho deixou o meu olhar desperto sem parecer artificial. Naturalidade e sofisticação na medida certa.",
-    service: "Efeito Gatinho",
-  },
-];
+/**
+ * Depoimentos REAIS de clientes. Vazio até haver algum.
+ *
+ * Estavam aqui quatro depoimentos inventados — nomes e textos criados do
+ * nada, apresentados no site como se fossem clientes verdadeiras. Foram
+ * removidos: numa página que serve para ganhar a confiança de quem ainda
+ * não conhece o negócio, uma avaliação falsa é exatamente a coisa errada
+ * a ter, e uma cliente que descubra perde a confiança em tudo o resto.
+ *
+ * Para acrescentar um a sério: pedir autorização à cliente, e juntar aqui
+ * com o nome que ela aceitar (primeiro nome basta) e o serviço que fez.
+ * A página e a secção da homepage aparecem sozinhas assim que houver um.
+ */
+export const TESTIMONIALS: Testimonial[] = [];
 
 export interface GalleryItem {
   id: string;

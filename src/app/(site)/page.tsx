@@ -6,7 +6,11 @@ import { HeroSparkles } from "@/components/site/HeroSparkles";
 import { HomeServiceNote } from "@/components/site/HomeServiceNote";
 import { WhatsappButton } from "@/components/site/WhatsappButton";
 import { SectionHeading, Stars } from "@/components/site/ui";
-import { listPublicServices, TESTIMONIALS, GALLERY } from "@/server/public-content";
+import {
+  listPublicServices,
+  TESTIMONIALS,
+  GALLERY,
+} from "@/server/public-content";
 import { SITE, WA_MESSAGES } from "@/lib/site-config";
 
 // Os cartões de serviço em destaque refletem os preços reais do catálogo —
@@ -31,7 +35,9 @@ export default async function HomePage() {
         <HeroSparkles />
         <div className="container-luxe relative z-10">
           <div className="max-w-xl">
-            <p className="eyebrow animate-fade-up text-gold-light">{SITE.tagline}</p>
+            <p className="eyebrow animate-fade-up text-gold-light">
+              {SITE.tagline}
+            </p>
             <h1 className="heading-serif text-ivory animate-fade-up mt-6 text-5xl [animation-delay:120ms] md:text-7xl">
               A arte de um
               <br />
@@ -39,12 +45,15 @@ export default async function HomePage() {
             </h1>
             <p className="text-ivory/75 animate-fade-up mt-7 max-w-md text-lg leading-relaxed [animation-delay:260ms]">
               Extensão de cílios de alto padrão, com{" "}
-              <span className="text-gold-light">atendimento a domicílio</span> em
-              Lisboa. Técnica, higiene e um design sob medida — no conforto da
-              sua casa.
+              <span className="text-gold-light">atendimento a domicílio</span>{" "}
+              em Lisboa. Técnica, higiene e um design sob medida — no conforto
+              da sua casa.
             </p>
             <div className="animate-fade-up mt-10 flex flex-wrap gap-4 [animation-delay:400ms]">
-              <WhatsappButton message={WA_MESSAGES.agendar} className="btn-gold">
+              <WhatsappButton
+                message={WA_MESSAGES.agendar}
+                className="btn-gold"
+              >
                 Agendar pelo WhatsApp
               </WhatsappButton>
               <Link
@@ -60,7 +69,9 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="text-ivory/50 absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2">
-          <span className="text-[0.6rem] tracking-[0.3em] uppercase">Role para descobrir</span>
+          <span className="text-[0.6rem] tracking-[0.3em] uppercase">
+            Role para descobrir
+          </span>
           <span className="animate-cue from-gold-light h-8 w-px bg-gradient-to-b to-transparent" />
         </div>
       </section>
@@ -150,9 +161,13 @@ export default async function HomePage() {
           ].map((s, i) => (
             <Reveal key={s.t} delay={i * 80} variant="up">
               <div>
-                <p className="text-onyx font-serif text-3xl md:text-4xl">{s.t}</p>
+                <p className="text-onyx font-serif text-3xl md:text-4xl">
+                  {s.t}
+                </p>
                 <span className="bg-rose/60 mx-auto mt-3 block h-px w-8" />
-                <p className="text-onyx/50 mt-3 text-xs tracking-[0.2em] uppercase">{s.d}</p>
+                <p className="text-onyx/50 mt-3 text-xs tracking-[0.2em] uppercase">
+                  {s.d}
+                </p>
               </div>
             </Reveal>
           ))}
@@ -162,7 +177,11 @@ export default async function HomePage() {
       {/* GALERIA PREVIEW */}
       <section className="container-luxe py-24">
         <Reveal>
-          <SectionHeading eyebrow="Galeria" title="Resultados que falam por si" center />
+          <SectionHeading
+            eyebrow="Galeria"
+            title="Resultados que falam por si"
+            center
+          />
         </Reveal>
         <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-4">
           {GALLERY.slice(0, 4).map((g, i) => (
@@ -189,38 +208,50 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* DEPOIMENTOS */}
-      <section className="bg-graphite py-24">
-        <div className="container-luxe">
-          <Reveal>
-            <SectionHeading eyebrow="Depoimentos" title="Quem viveu, recomenda" center light />
-          </Reveal>
-          <div className="mt-14 grid gap-8 md:grid-cols-2">
-            {TESTIMONIALS.slice(0, 2).map((t, i) => (
-              <Reveal key={t.id} variant={i === 0 ? "left" : "right"} delay={i * 120}>
-                <figure className="hover-lift border-ivory/10 bg-onyx/40 hover:border-gold/30 h-full rounded-2xl border p-8">
-                  <Stars rating={t.rating} />
-                  <blockquote className="text-ivory/90 mt-5 font-serif text-xl leading-relaxed italic">
-                    “{t.text}”
-                  </blockquote>
-                  <figcaption className="mt-6 text-sm">
-                    <span className="text-gold-light">{t.name}</span>
-                    <span className="text-ivory/50"> · {t.service}</span>
-                  </figcaption>
-                </figure>
-              </Reveal>
-            ))}
+      {/* DEPOIMENTOS — só aparece quando houver algum a sério. Uma secção
+          com avaliações inventadas custa mais confiança do que ganha. */}
+      {TESTIMONIALS.length > 0 && (
+        <section className="bg-graphite py-24">
+          <div className="container-luxe">
+            <Reveal>
+              <SectionHeading
+                eyebrow="Depoimentos"
+                title="Quem viveu, recomenda"
+                center
+                light
+              />
+            </Reveal>
+            <div className="mt-14 grid gap-8 md:grid-cols-2">
+              {TESTIMONIALS.slice(0, 2).map((t, i) => (
+                <Reveal
+                  key={t.id}
+                  variant={i === 0 ? "left" : "right"}
+                  delay={i * 120}
+                >
+                  <figure className="hover-lift border-ivory/10 bg-onyx/40 hover:border-gold/30 h-full rounded-2xl border p-8">
+                    <Stars rating={t.rating} />
+                    <blockquote className="text-ivory/90 mt-5 font-serif text-xl leading-relaxed italic">
+                      “{t.text}”
+                    </blockquote>
+                    <figcaption className="mt-6 text-sm">
+                      <span className="text-gold-light">{t.name}</span>
+                      <span className="text-ivory/50"> · {t.service}</span>
+                    </figcaption>
+                  </figure>
+                </Reveal>
+              ))}
+            </div>
+            <div className="mt-12 text-center">
+              <Link
+                href="/depoimentos"
+                className="btn-outline border-ivory/30 text-ivory hover:text-gold-light"
+              >
+                Mais depoimentos
+              </Link>
+            </div>
           </div>
-          <div className="mt-12 text-center">
-            <Link
-              href="/depoimentos"
-              className="btn-outline border-ivory/30 text-ivory hover:text-gold-light"
-            >
-              Mais depoimentos
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* FIDELIDADE CTA */}
       <section className="container-luxe py-24">
