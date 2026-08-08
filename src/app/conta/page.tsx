@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import type { AppointmentStatus } from "@prisma/client";
 import { requireClientPage } from "@/server/client-auth";
 import { getClientPortalData } from "@/server/client-portal";
 import { AppointmentStatusBadge } from "@/components/ui/badge";
 import { formatEUR } from "@/lib/money";
 import { formatDayHeading, formatTime } from "@/lib/datetime";
-import { whatsappLink } from "@/lib/format";
-import { SITE, WA_MESSAGES } from "@/lib/site-config";
 
 export const metadata: Metadata = { title: "A minha conta" };
 
@@ -52,14 +51,12 @@ export default async function ContaPage() {
         <h1 className="font-[family-name:var(--font-cormorant)] text-3xl text-[var(--text)]">
           Olá, {session.name}
         </h1>
-        <a
-          href={whatsappLink(SITE.whatsapp, WA_MESSAGES.agendar)}
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href="/conta/marcar"
           className="inline-flex h-11 items-center rounded-[var(--radius)] bg-[var(--accent)] px-4 text-sm font-medium text-[var(--accent-fg)] hover:bg-[var(--accent-hover)]"
         >
           Marcar atendimento
-        </a>
+        </Link>
       </div>
 
       {loyaltyCard && (

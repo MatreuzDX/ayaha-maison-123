@@ -129,9 +129,9 @@ export async function listAvailableSlots(input: {
 
   const travelToMin = await estimateTravelMinutes(input.unitId, input.clientId);
   const earliest = new Date(Date.now() + MIN_NOTICE_HOURS * 3_600_000);
+  const horizon = new Date(Date.now() + BOOKING_HORIZON_DAYS * 86_400_000);
 
-  const slots: string[] = [];
-
+  const candidatos: Date[] = [];
   for (const block of hours) {
     for (
       let minute = block.startMin;
@@ -139,8 +139,16 @@ export async function listAvailableSlots(input: {
       minute += SLOT_STEP_MIN
     ) {
       const startAt = new Date(dayStart.getTime() + minute * 60_000);
-      if (startAt < earliest) continue;
+      if (startAt < earliest || startAt > horizon) continue;
+      candidatos.push(startAt);
+    }
+  }
 
+  // Em paralelo, não em série: um dia de trabalho dá umas vinte horas
+  // possíveis, e vinte verificações seguidas deixavam a página a pensar
+  // vários segundos antes de mostrar seja o que for.
+  const resultados = await Promise.all(
+    candidatos.map(async (startAt) => {
       const endAt = new Date(startAt.getTime() + totalMinutes * 60_000);
       const availability = await checkAvailability(
         input.professionalId,
@@ -148,11 +156,11 @@ export async function listAvailableSlots(input: {
         endAt,
         travelToMin,
       );
-      if (availability.available) slots.push(startAt.toISOString());
-    }
-  }
+      return availability.available ? startAt.toISOString() : null;
+    }),
+  );
 
-  return slots;
+  return resultados.filter((s): s is string => s !== null);
 }
 
 export interface BookingRequest {
@@ -301,7 +309,6 @@ export async function requestAppointment(
       },
     });
 
-    // Auditoria e histórico sem `actor` — foi a própria cliente.
     // Sem utilizador de equipa: foi a própria cliente, a partir do site.
     await recordAudit(
       tx,
@@ -328,6 +335,8 @@ export async function requestAppointment(
       },
     );
 
-    return created;
+    // O nome da profissional vai junto para quem chama não ter de o ir
+    // buscar outra vez só para escrever o resumo do WhatsApp.
+    return { ...created, professionalName: professional.displayName };
   });
 }
