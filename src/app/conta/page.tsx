@@ -1,152 +1,119 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { AppointmentStatus } from "@prisma/client";
 import { requireClientPage } from "@/server/client-auth";
-import { getClientPortalData } from "@/server/client-portal";
-import { AppointmentStatusBadge } from "@/components/ui/badge";
+import { getPortalDashboard } from "@/server/client-portal";
 import { formatEUR } from "@/lib/money";
 import { formatDayHeading, formatTime } from "@/lib/datetime";
+import {
+  Card,
+  EmptyState,
+  LoyaltyCard,
+  PortalHeading,
+  Stat,
+  StatusBadge,
+} from "./portal-ui";
 
-export const metadata: Metadata = { title: "A minha conta" };
-
-const OPEN_STATUSES = new Set<AppointmentStatus>([
-  "REQUESTED",
-  "CONFIRMED",
-  "REMINDED",
-  "EN_ROUTE",
-  "IN_PROGRESS",
-]);
+export const metadata: Metadata = { title: "Início" };
+export const dynamic = "force-dynamic";
 
 export default async function ContaPage() {
   const session = await requireClientPage();
 
+  // Conta ainda por aprovar: esta é a única página do portal que ela vê.
   if (!session.approved) {
     return (
       <div className="space-y-4">
-        <h1 className="font-[family-name:var(--font-cormorant)] text-3xl text-[var(--text)]">
-          Olá, {session.name}
-        </h1>
-        <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-6">
+        <PortalHeading title={`Olá, ${session.name}`} />
+        <Card>
           <p className="text-[var(--text)]">
             A sua conta está a aguardar aprovação da equipa AYAHA MAISON.
           </p>
           <p className="mt-2 text-sm text-[var(--text-muted)]">
             É só desta vez — assim que a equipa confirmar, passa a ver aqui as
-            suas marcações e o cartão AYAHA Club. Costuma ser rápido.
+            suas marcações, o cartão AYAHA Club e os seus benefícios.
           </p>
-        </div>
+        </Card>
       </div>
     );
   }
 
-  const { appointments, loyaltyCard } = await getClientPortalData(
-    session.clientId,
-  );
-  const upcoming = appointments.filter((a) => OPEN_STATUSES.has(a.status));
-  const past = appointments.filter((a) => !OPEN_STATUSES.has(a.status));
+  const dados = await getPortalDashboard(session.clientId);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-[family-name:var(--font-cormorant)] text-3xl text-[var(--text)]">
-          Olá, {session.name}
-        </h1>
-        <Link
-          href="/conta/marcar"
-          className="inline-flex h-11 items-center rounded-[var(--radius)] bg-[var(--accent)] px-4 text-sm font-medium text-[var(--accent-fg)] hover:bg-[var(--accent-hover)]"
-        >
-          Marcar atendimento
-        </Link>
-      </div>
-
-      {loyaltyCard && (
-        <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-6">
-          <h2 className="text-lg text-[var(--text)]">AYAHA Club</h2>
-          <p className="mt-0.5 text-sm text-[var(--text-muted)]">
-            Cartão {loyaltyCard.cycleNumber} · {loyaltyCard.stampsCount} de{" "}
-            {loyaltyCard.stampsRequired} carimbos
-          </p>
-          <div
-            className="mt-3 flex gap-2"
-            role="img"
-            aria-label={`${loyaltyCard.stampsCount} de ${loyaltyCard.stampsRequired} carimbos`}
+      <PortalHeading
+        title={`Olá, ${session.name}`}
+        subtitle="Bem-vinda ao seu espaço na AYAHA MAISON."
+        action={
+          <Link
+            href="/conta/marcar"
+            className="inline-flex h-11 items-center rounded-[var(--radius)] bg-[var(--accent)] px-4 text-sm font-medium text-[var(--accent-fg)] hover:bg-[var(--accent-hover)]"
           >
-            {Array.from({ length: loyaltyCard.stampsRequired }, (_, i) => (
-              <div
-                key={i}
-                className={
-                  i < loyaltyCard.stampsCount
-                    ? "size-9 rounded-full border-2 border-[var(--accent)] bg-[var(--accent)]"
-                    : "size-9 rounded-full border-2 border-dashed border-[var(--border)]"
-                }
-              />
-            ))}
-          </div>
-          {loyaltyCard.stampsCount >= loyaltyCard.stampsRequired - 1 &&
-            loyaltyCard.stampsCount < loyaltyCard.stampsRequired && (
-              <p className="mt-3 text-sm text-[var(--accent)]">
-                Falta um carimbo para a recompensa.
+            Marcar atendimento
+          </Link>
+        }
+      />
+
+      {/* Próxima marcação — o que a cliente quer saber primeiro. */}
+      {dados.nextAppointment ? (
+        <Card>
+          <p className="text-[0.68rem] tracking-[0.14em] text-[var(--text-muted)] uppercase">
+            Próxima marcação
+          </p>
+          <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="font-[family-name:var(--font-cormorant)] text-2xl text-[var(--text)]">
+                {dados.nextAppointment.services.join(", ")}
               </p>
-            )}
-        </div>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">
+                {formatDayHeading(dados.nextAppointment.startAt)}, às{" "}
+                {formatTime(dados.nextAppointment.startAt)}
+              </p>
+              <p className="mt-0.5 text-sm text-[var(--text-muted)]">
+                Com {dados.nextAppointment.professionalName}
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <StatusBadge status={dados.nextAppointment.status} />
+              <span className="tabular text-sm text-[var(--text)]">
+                {formatEUR(dados.nextAppointment.totalCents)}
+              </span>
+            </div>
+          </div>
+          <Link
+            href="/conta/marcacoes"
+            className="mt-4 inline-block text-sm text-[var(--accent)] underline"
+          >
+            Ver marcação
+          </Link>
+        </Card>
+      ) : (
+        <EmptyState
+          title="Nenhuma marcação agendada"
+          description="Quando marcar o próximo atendimento, aparece aqui."
+          action={
+            <Link
+              href="/conta/marcar"
+              className="inline-flex h-11 items-center rounded-[var(--radius)] bg-[var(--accent)] px-4 text-sm font-medium text-[var(--accent-fg)] hover:bg-[var(--accent-hover)]"
+            >
+              Marcar atendimento
+            </Link>
+          }
+        />
       )}
 
-      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-6">
-        <h2 className="text-lg text-[var(--text)]">Próximas marcações</h2>
-        {upcoming.length === 0 ? (
-          <p className="mt-3 text-sm text-[var(--text-muted)]">
-            Ainda não tem marcações agendadas.
-          </p>
-        ) : (
-          <ul className="mt-3 divide-y divide-[var(--border)]">
-            {upcoming.map((a) => (
-              <li
-                key={a.id}
-                className="flex flex-wrap items-center justify-between gap-2 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-[var(--text)]">
-                    {a.services.join(", ") || "Sem serviços"}
-                  </p>
-                  <p className="mt-0.5 text-xs text-[var(--text-muted)]">
-                    {formatDayHeading(a.startAt)}, {formatTime(a.startAt)} ·{" "}
-                    {a.professionalName}
-                  </p>
-                </div>
-                <AppointmentStatusBadge status={a.status} />
-              </li>
-            ))}
-          </ul>
-        )}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Stat label="Atendimentos" value={String(dados.totalAppointments)} />
+        <Stat label="Concluídos" value={String(dados.completedCount)} />
+        <Stat label="Benefícios" value={String(dados.availableBenefits)} />
       </div>
 
-      {past.length > 0 && (
-        <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-6">
-          <h2 className="text-lg text-[var(--text)]">Histórico</h2>
-          <ul className="mt-3 divide-y divide-[var(--border)]">
-            {past.map((a) => (
-              <li
-                key={a.id}
-                className="flex flex-wrap items-center justify-between gap-2 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-[var(--text)]">
-                    {a.services.join(", ") || "Sem serviços"}
-                  </p>
-                  <p className="mt-0.5 text-xs text-[var(--text-muted)]">
-                    {formatDayHeading(a.startAt)}, {formatTime(a.startAt)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <AppointmentStatusBadge status={a.status} />
-                  <span className="tabular text-sm text-[var(--text)]">
-                    {formatEUR(a.totalCents)}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {dados.loyaltyCard && (
+        <LoyaltyCard
+          stampsCount={dados.loyaltyCard.stampsCount}
+          stampsRequired={dados.loyaltyCard.stampsRequired}
+          cycleNumber={dados.loyaltyCard.cycleNumber}
+        />
       )}
     </div>
   );

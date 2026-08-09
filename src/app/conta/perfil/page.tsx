@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireClientPage } from "@/server/client-auth";
+import { requireApprovedClientPage } from "@/server/client-auth";
 import { prisma } from "@/server/db";
 import { ProfileForm } from "./profile-form";
 
 export const metadata: Metadata = { title: "O meu perfil" };
 
 export default async function PerfilPage() {
-  const session = await requireClientPage();
+  const session = await requireApprovedClientPage();
   const client = await prisma.client.findUniqueOrThrow({
     where: { id: session.clientId },
   });

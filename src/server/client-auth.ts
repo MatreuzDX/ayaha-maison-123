@@ -391,3 +391,17 @@ export async function requireClientPage(): Promise<ClientSessionInfo> {
   if (session) return session;
   redirect("/login");
 }
+
+/**
+ * Como `requireClientPage`, mas exige também a conta aprovada.
+ *
+ * É o guarda das páginas internas do portal. A verificação é feita no
+ * servidor, em cada página — não basta esconder o menu, porque escrever o
+ * endereço à mão contorna qualquer coisa que só exista no browser.
+ */
+export async function requireApprovedClientPage(): Promise<ClientSessionInfo> {
+  const session = await getClientSession();
+  if (!session) redirect("/login");
+  if (!session.approved) redirect("/conta");
+  return session;
+}
