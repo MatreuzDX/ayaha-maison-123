@@ -9,8 +9,12 @@ import {
   lisbonStartOfDay,
   formatDayHeading,
 } from "@/lib/datetime";
-import { listPendingAccounts } from "@/server/services/client.service";
+import {
+  listPendingAccounts,
+  listRetouchDue,
+} from "@/server/services/client.service";
 import { PendingAccounts } from "./pending-accounts";
+import { RetouchDue } from "./retouch-due";
 
 export const metadata: Metadata = { title: "Início" };
 
@@ -53,33 +57,40 @@ export default async function DashboardPage() {
 
   const clientWhere = can(actor, "client:read") ? clientScope(actor) : null;
 
-  const [clientCount, atRiskCount, todayCount, monthRevenue, pending] =
-    await Promise.all([
-      clientWhere ? prisma.client.count({ where: clientWhere }) : 0,
-      clientWhere
-        ? prisma.client.count({ where: { ...clientWhere, status: "AT_RISK" } })
-        : 0,
-      prisma.appointment.count({
-        where: {
-          unitId: actor.unitId,
-          deletedAt: null,
-          startAt: { gte: lisbonStartOfDay(now), lte: lisbonEndOfDay(now) },
-          status: { notIn: ["CANCELLED"] },
+  const [
+    clientCount,
+    atRiskCount,
+    todayCount,
+    monthRevenue,
+    pending,
+    retoques,
+  ] = await Promise.all([
+    clientWhere ? prisma.client.count({ where: clientWhere }) : 0,
+    clientWhere
+      ? prisma.client.count({ where: { ...clientWhere, status: "AT_RISK" } })
+      : 0,
+    prisma.appointment.count({
+      where: {
+        unitId: actor.unitId,
+        deletedAt: null,
+        startAt: { gte: lisbonStartOfDay(now), lte: lisbonEndOfDay(now) },
+        status: { notIn: ["CANCELLED"] },
+      },
+    }),
+    prisma.appointment.aggregate({
+      where: {
+        unitId: actor.unitId,
+        deletedAt: null,
+        status: "COMPLETED",
+        completedAt: {
+          gte: new Date(now.getFullYear(), now.getMonth(), 1),
         },
-      }),
-      prisma.appointment.aggregate({
-        where: {
-          unitId: actor.unitId,
-          deletedAt: null,
-          status: "COMPLETED",
-          completedAt: {
-            gte: new Date(now.getFullYear(), now.getMonth(), 1),
-          },
-        },
-        _sum: { totalCents: true },
-      }),
-      listPendingAccounts(actor),
-    ]);
+      },
+      _sum: { totalCents: true },
+    }),
+    listPendingAccounts(actor),
+    listRetouchDue(actor),
+  ]);
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-6">
@@ -93,6 +104,10 @@ export default async function DashboardPage() {
       {/* Antes dos indicadores: é o único item do painel que precisa de uma
           decisão de alguém, e há pessoas à espera do outro lado. */}
       <PendingAccounts accounts={pending} />
+
+      {/* A seguir aos pedidos: também precisa de ação, mas ninguém está
+          à espera do outro lado. É o que mais faz voltar clientes. */}
+      <RetouchDue clients={retoques} />
 
       <section aria-labelledby="kpis">
         <h2 id="kpis" className="sr-only">

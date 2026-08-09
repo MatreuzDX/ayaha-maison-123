@@ -2,13 +2,16 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   approveClientAccount,
   deleteClient,
+  listRetouchDue,
 } from "@/server/services/client.service";
+import { createAppointment } from "@/server/services/appointment.service";
 import { NotFoundError } from "@/server/errors";
 import {
   cleanupFixture,
   createFixture,
   db,
   hasDatabase,
+  nextWednesdayAt,
   type Fixture,
 } from "./setup";
 
@@ -118,5 +121,92 @@ describe.skipIf(!hasDatabase)("aprovar conta de cliente", () => {
     await expect(approveClientAccount(f.owner, client.id)).rejects.toThrow(
       NotFoundError,
     );
+  });
+});
+
+describe.skipIf(!hasDatabase)("retoques a fazer", () => {
+  let f: Fixture;
+
+  beforeAll(async () => {
+    f = await createFixture("retoques");
+  });
+
+  afterAll(async () => {
+    await cleanupFixture(f.unitId);
+    await db.$disconnect();
+  });
+
+  /** Põe a última visita da cliente a N dias atrás. */
+  async function ultimaVisitaHa(dias: number) {
+    await db.client.update({
+      where: { id: f.clientId },
+      data: { lastVisitAt: new Date(Date.now() - dias * 86_400_000) },
+    });
+  }
+
+  it("mostra quem passou da janela de manutenção", async () => {
+    await ultimaVisitaHa(25);
+
+    const lista = await listRetouchDue(f.owner);
+    const eu = lista.find((c) => c.clientId === f.clientId);
+
+    expect(eu).toBeDefined();
+    expect(eu!.daysSince).toBe(25);
+  });
+
+  it("não mostra quem ainda está dentro da janela", async () => {
+    // 10 dias é cedo de mais — os cílios ainda estão bons.
+    await ultimaVisitaHa(10);
+
+    const lista = await listRetouchDue(f.owner);
+    expect(lista.find((c) => c.clientId === f.clientId)).toBeUndefined();
+  });
+
+  it("não mostra quem já está em risco (mais de 45 dias)", async () => {
+    // Passados 45 dias é outro problema, com outro tratamento — não se
+    // deve mandar "está na altura do retoque" a quem desapareceu há meses.
+    await ultimaVisitaHa(60);
+
+    const lista = await listRetouchDue(f.owner);
+    expect(lista.find((c) => c.clientId === f.clientId)).toBeUndefined();
+  });
+
+  it("não mostra quem já tem a próxima marcação feita", async () => {
+    await ultimaVisitaHa(25);
+
+    // Confirma que apareceria, se não tivesse marcação.
+    expect(
+      (await listRetouchDue(f.owner)).find((c) => c.clientId === f.clientId),
+    ).toBeDefined();
+
+    const marcada = await createAppointment(f.owner, {
+      clientId: f.clientId,
+      professionalId: f.professionalId,
+      serviceIds: [f.serviceId],
+      startAt: nextWednesdayAt(10),
+    });
+
+    // Agora não há nada a lembrar — ela já vem cá.
+    expect(
+      (await listRetouchDue(f.owner)).find((c) => c.clientId === f.clientId),
+    ).toBeUndefined();
+
+    await db.appointment.delete({ where: { id: marcada.id } });
+  });
+
+  it("não mostra clientes bloqueadas", async () => {
+    await ultimaVisitaHa(25);
+    await db.client.update({
+      where: { id: f.clientId },
+      data: { status: "BLOCKED" },
+    });
+
+    const lista = await listRetouchDue(f.owner);
+    expect(lista.find((c) => c.clientId === f.clientId)).toBeUndefined();
+
+    await db.client.update({
+      where: { id: f.clientId },
+      data: { status: "ACTIVE" },
+    });
   });
 });

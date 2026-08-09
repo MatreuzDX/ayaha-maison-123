@@ -590,6 +590,82 @@ export async function listPendingAccounts(actor: Actor) {
   }));
 }
 
+// ── Retoques a fazer ─────────────────────────────────────────
+//
+// As extensões pedem manutenção a cada 2-3 semanas. Passado esse tempo,
+// ou a cliente volta ou os cílios caem e ela deixa de ser cliente. É o
+// hábito mais valioso do negócio e o mais fácil de esquecer.
+//
+// Isto é uma LISTA DE TRABALHO, não um envio automático: a equipa vê quem
+// está na altura e manda a mensagem com um clique. Um envio em massa
+// automático exigia a API da Meta e consentimento registado — uma
+// mensagem individual da profissional para a sua cliente é outra coisa.
+
+/** A partir de quando faz sentido lembrar (dias desde a última visita). */
+const RETOUCH_FROM_DAYS = 18;
+
+export interface RetouchDue {
+  clientId: string;
+  firstName: string;
+  lastName: string | null;
+  phone: string;
+  lastVisitAt: Date;
+  daysSince: number;
+  lastService: string | null;
+}
+
+export async function listRetouchDue(actor: Actor): Promise<RetouchDue[]> {
+  if (!can(actor, "client:read")) return [];
+
+  const now = Date.now();
+  const desde = new Date(now - RETOUCH_FROM_DAYS * 86_400_000);
+  // A partir dos 45 dias a cliente já entra em "em risco", que é outro
+  // problema e tem outro tratamento — não sobrepor os dois.
+  const ate = new Date(now - AT_RISK_DAYS * 86_400_000);
+
+  const clients = await prisma.client.findMany({
+    where: {
+      ...clientScope(actor),
+      status: { notIn: ["BLOCKED"] },
+      lastVisitAt: { lte: desde, gte: ate },
+      // Já tem a próxima marcada — não há nada a lembrar.
+      appointments: {
+        none: {
+          deletedAt: null,
+          startAt: { gte: new Date() },
+          status: { notIn: ["CANCELLED", "NO_SHOW"] },
+        },
+      },
+    },
+    orderBy: { lastVisitAt: "asc" },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      phone: true,
+      lastVisitAt: true,
+      appointments: {
+        where: { deletedAt: null, status: "COMPLETED" },
+        orderBy: { startAt: "desc" },
+        take: 1,
+        select: { items: { select: { nameSnapshot: true }, take: 1 } },
+      },
+    },
+  });
+
+  return clients
+    .filter((c) => c.lastVisitAt !== null)
+    .map((c) => ({
+      clientId: c.id,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      phone: c.phone,
+      lastVisitAt: c.lastVisitAt!,
+      daysSince: Math.floor((now - c.lastVisitAt!.getTime()) / 86_400_000),
+      lastService: c.appointments[0]?.items[0]?.nameSnapshot ?? null,
+    }));
+}
+
 /**
  * Recusa um pedido de acesso ao portal.
  *
