@@ -104,6 +104,6 @@ nada. Fica como sugestão, não como urgência.
 | Fotos verdadeiras | Ver `docs/stack-2026-08-08/README.md`; os tamanhos estão no guia de fotos |
 | Recompensa "upgrade de técnica" | Com preço único de €30 não vale nada para a cliente — trocar nas Definições do CRM |
 | Publicar o repositório no GitHub | O git é local, sem remote configurado |
-| Rodar a SUPABASE_SERVICE_ROLE_KEY | Foi exposta numa fase anterior e não há confirmação de que foi trocada |
+| Rodar a SUPABASE_SERVICE_ROLE_KEY | **Investigado a 2026-08-09:** nunca esteve no git, não é usada por nenhum código, e não está nas variáveis de produção. O risco existe só se a chave tiver sido vista em chat ou print — nesse caso rodar no painel do Supabase, que é gratuito e não parte nada por não estar em uso. |
 | Lembretes automáticos (48h/24h/2h) | Reduz faltas em 35–45% em quem já usa |
 | Lembrete de retoque (2–3 semanas) | O hábito mais valioso do negócio, ainda por automatizar |
