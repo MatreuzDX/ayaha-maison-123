@@ -1,109 +1,60 @@
-# Próximo passo — prompt para colar
+# Próximo passo
 
-**Atualizado a 8 de agosto de 2026.**
+**Atualizado a 9 de agosto de 2026.**
 
-Cola o bloco abaixo numa sessão nova do agente. Está escrito para ser lido
-por um agente, não por uma pessoa — daí o tom seco.
+## Antes de tocar em código
 
----
+Ler, por esta ordem:
 
-## Prompt
+1. `C:\Users\Mateus\Desktop\AYAHA-SKILLS\` — erros já cometidos e como
+   evitá-los. Sobretudo `deploy-vercel-seguro` e `verificar-a-serio`.
+2. `AGENTS.md` — resumo operacional do projeto.
+3. `docs/stack-2026-08-08/README.md` — stack, ligações, armadilhas.
 
-```
-Lê primeiro docs/stack-2026-08-08/README.md e AGENTS.md.
+## Estado a 9 de agosto
 
-Constrói a AUTO-MARCAÇÃO: a cliente marca sozinha no site, sem passar
-pelo WhatsApp.
+Em produção, em `ayaha-crm.vercel.app`. **167 testes**, lint e build
+limpos.
 
-O que já existe e NÃO deves reconstruir:
-- Múltiplas profissionais (modelo Professional), já em uso na agenda.
-- checkAvailability() e createAppointment() em
-  src/server/services/appointment.service.ts — já calculam conflitos
-  e tempo de deslocação.
-- Portal da cliente em /conta, com marcações e cartão AYAHA Club.
-- Contas de cliente com aprovação da equipa (ClientAccount.approvedAt).
+### Site público
+Completo: início, sobre, serviços (+ página por serviço), galeria com
+trabalho real (2 fotos e 1 vídeo de cliente), depoimentos, FAQ, contacto,
+AYAHA Club. Fixo em modo claro (`.site-light`) — ver a nota abaixo.
 
-O que falta construir:
+### Portal da cliente (`/conta`)
+Navegação própria com Início, Marcações, Histórico, Benefícios, Perfil e
+Segurança. A cliente marca sozinha em `/conta/marcar` (serviço →
+profissional → dia → hora), e o pedido nasce em `REQUESTED` para a equipa
+confirmar.
 
-1. requestAppointment(session, input) em src/server/client-booking.ts
-   - NOVO ficheiro, separado de appointment.service.ts, pela mesma razão
-     que client-auth.ts é separado de auth.ts: a cliente nunca deve poder
-     acabar com poderes de equipa por acidente de código.
-   - Recebe a sessão da cliente (getClientSession), não um Actor.
-   - Só aceita se session.approved for true.
-   - Reutiliza checkAvailability para não aceitar horários impossíveis.
-   - Cria a marcação com status REQUESTED, nunca CONFIRMED — a equipa
-     confirma depois na agenda.
+### CRM (`/app`)
+No topo do painel: **pedidos de acesso** (aprovar/recusar) e **clientes na
+altura do retoque** (mensagem de WhatsApp a um clique). Gestão de acesso
+na ficha de cada cliente: alterar e-mail, definir palavra-passe nova,
+remover acesso.
 
-2. Página /marcar (pública, exige sessão de cliente aprovada)
-   - Passos por botões, não texto livre: serviço → profissional →
-     dia → hora → confirmar.
-   - Botões em vez de campo livre é deliberado: elimina a hipótese de
-     interpretar mal uma data.
-   - Só mostra horas realmente livres.
+## O que falta
 
-3. No fim: botão que abre o WhatsApp com o resumo já escrito
-   (serviço, profissional, dia, hora). Mesmo padrão que já existe em
-   src/app/(app)/app/agenda/page.tsx.
-
-4. A marcação aparece em /conta ("Próximas marcações") e na agenda da
-   equipa com o estado "Pedida".
-
-Testes de integração obrigatórios:
-- cliente não aprovada não consegue marcar
-- não consegue marcar num horário ocupado
-- não consegue marcar em nome de outra cliente
-- a marcação criada fica em REQUESTED
-
-Antes de dizer que está pronto: npm run typecheck && npm run lint &&
-npm test && DEMO_MODE= npm run build. Depois deploy E confirma o alias
-(vercel alias set <deploy> ayaha-crm.vercel.app) — sem isso o endereço
-principal fica no deploy antigo.
-```
-
----
-
-## Já feito nesta sessão (8 de agosto)
-
-Não precisas de pedir estas — estão em produção:
-
-- **Palavra-passe mínima: 8 caracteres** (era 10).
-- **Formulários deixaram de apagar tudo ao dar erro.** Errar a confirmação
-  da palavra-passe já não obriga a reescrever nome, apelido, e-mail e
-  telefone. No login, o e-mail também fica.
-- **Gestão de acesso na ficha da cliente** (`/app/clientes/<id>`, cartão
-  "Conta do portal"):
-  - alterar o e-mail de acesso
-  - definir uma palavra-passe nova (fecha as sessões abertas)
-  - remover o acesso (tira palavra-passe e Google, fecha sessões)
-  - aprovar contas pendentes
-
-### Sobre ver a palavra-passe das clientes
-
-Não é uma opção que faltou pôr — **é impossível**, e é assim que tem de
-ser. Só fica guardado um *hash* Argon2id, que não se desfaz. Nem tu, nem
-eu, nem quem tivesse acesso à base de dados consegue ler a palavra-passe
-de uma cliente.
-
-O que existe resolve o mesmo problema por outro caminho: a cliente diz que
-não consegue entrar, combinam uma palavra-passe, tu escreve-la na ficha
-dela, e ela passa a entrar com essa.
-
-Uma nota honesta sobre isto: enquanto for a cliente a dizer-te a
-palavra-passe (por telefone ou WhatsApp), tu ficas a saber a palavra-passe
-dela — e ela provavelmente usa a mesma noutros sítios. Funciona para um
-negócio pequeno, mas quando houver mais equipa vale a pena trocar por um
-link de recuperação enviado por e-mail, em que ninguém da casa chega a ver
-nada. Fica como sugestão, não como urgência.
-
-## Ainda por fazer (fora a auto-marcação)
-
-| O quê | Porquê importa |
+| O quê | Notas |
 |---|---|
-| Depoimentos reais | Os que estão no site são inventados — trocar por reais antes de mostrar a clientes |
-| Fotos verdadeiras | Ver `docs/stack-2026-08-08/README.md`; os tamanhos estão no guia de fotos |
-| Recompensa "upgrade de técnica" | Com preço único de €30 não vale nada para a cliente — trocar nas Definições do CRM |
-| Publicar o repositório no GitHub | O git é local, sem remote configurado |
-| Rodar a SUPABASE_SERVICE_ROLE_KEY | **Investigado a 2026-08-09:** nunca esteve no git, não é usada por nenhum código, e não está nas variáveis de produção. O risco existe só se a chave tiver sido vista em chat ou print — nesse caso rodar no painel do Supabase, que é gratuito e não parte nada por não estar em uso. |
-| Lembretes automáticos (48h/24h/2h) | Reduz faltas em 35–45% em quem já usa |
-| Lembrete de retoque (2–3 semanas) | O hábito mais valioso do negócio, ainda por automatizar |
+| **Publicar no GitHub** | O git é local, sem remote. Precisa do Mateus para autenticar — o terminal do agente não tem TTY para o Git Credential Manager. |
+| **Lembretes 48h/24h/2h** antes do atendimento | Mesmo padrão do retoque: lista no CRM com envio a um clique. Reduz faltas em 35-45%. |
+| **Trocar "upgrade de técnica"** | Decisão da fundadora. Com preço único de €30 essa recompensa não vale nada; sugerido "6.º atendimento grátis". Muda-se nas Definições do CRM. |
+| **Depoimentos reais** | O site tem estado vazio honesto. Basta o texto e o primeiro nome de uma cliente que autorize, e a página volta a aparecer sozinha. |
+| **Rodar `SUPABASE_SERVICE_ROLE_KEY`** | Investigado a 9/08: nunca esteve no git, não é usada por código nenhum, não está em produção. Só rodar se houver suspeita de a chave ter sido vista em chat ou print — e nesse caso não parte nada. |
+| Loja / checkout | `Product`, `Order` e `GiftCard` já existem no schema, sem interface. |
+| Financeiro e Relatórios | Placeholders. O financeiro está bloqueado por decisões de IVA e comissões. |
+
+## Coisas que já morderam neste projeto
+
+- **`vercel deploy --prod` não move o endereço principal.** Depois de
+  publicar, `vercel alias set <novo> ayaha-crm.vercel.app` e confirmar com
+  `curl` ao endereço principal. Já aconteceu ficar dias num deploy antigo.
+- **Migração antes do código que precisa dela.** Publicar primeiro o código
+  partiu o login de clientes em produção.
+- **Testar em modo escuro e a 375px.** O site esteve ilegível (preto sobre
+  preto) para quem tem o telemóvel em modo escuro.
+- **O `.claude/launch.json` que conta** é o do diretório de trabalho
+  (`Desktop/chat`), não o da pasta do projeto.
+- **A porta 3000 é obrigatória** em local: o retorno do Google OAuth está
+  registado como `http://localhost:3000/api/auth/callback/google`.
