@@ -1,5 +1,7 @@
 // AYAHA MAISON — CRM
-// Schema completo. Ver docs/ESPECIFICACAO.md secção 6.
+// Este ficheiro é a fonte de verdade do modelo de dados.
+// (docs/ESPECIFICACAO.md §6 chegou a ter uma cópia disto; foi retirada a
+//  10/08/2026 por estar desatualizada. Lá ficou só o porquê das convenções.)
 //
 // Convenções:
 //   - Dinheiro: Int em cêntimos, sufixo `Cents`

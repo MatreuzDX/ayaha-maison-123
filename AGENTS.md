@@ -6,8 +6,13 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # AYAHA CRM — contexto para o agente
 
-Ler `docs/ESPECIFICACAO.md` antes de escrever código. Este ficheiro é o resumo
-operacional; a especificação é a fonte de verdade.
+**Começar por `docs/PROXIMO-PASSO.md`** (~3 KB): estado atual e o que falta.
+
+`docs/ESPECIFICACAO.md` **não se lê inteiro** — são 2300 linhas de raciocínio
+de negócio escrito antes de existir código. Abre-se a secção do módulo que se
+vai mexer, e mais nada.
+
+O modelo de dados é `prisma/schema.prisma`, nunca a especificação.
 
 ## O negócio em cinco linhas
 
@@ -115,13 +120,9 @@ que corre com `DEMO_MODE` vazio.
 
 ## Estado
 
-- ✅ **Fase 0** — fundações: schema, constraints SQL, autenticação, permissões.
-- ✅ **Fase 1** — clientes (lista, ficha, criar, editar) e catálogo de serviços.
-- ✅ **Fase 2** — equipa e horários (leitura na UI; edição no serviço).
-- ✅ **Fase 3 (base)** — agenda com cálculo de deslocação; criar, cancelar e
-  concluir marcação, com carimbo de fidelidade e abate de stock automáticos.
-- ⬜ Fase 4 — financeiro e faturação (bloqueada pelo Anexo A)
-- ⬜ Fases 5-8 — ver `docs/ESPECIFICACAO.md` secção 32
+**Está em `docs/PROXIMO-PASSO.md`, e só lá.** Este ficheiro já teve uma lista
+de fases que ficou meses desatualizada — o estado muda a cada sessão, as
+regras acima não. Duplicá-lo aqui só garante que um dos dois mente.
 
 Publicar: ver `docs/DEPLOY.md`.
 

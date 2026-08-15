@@ -214,7 +214,9 @@ código.
 | Ficheiro | O que tem |
 |---|---|
 | `AGENTS.md` | Resumo operacional — é o que o agente lê primeiro. |
-| `docs/ESPECIFICACAO.md` | Especificação completa (~17.500 palavras). Fonte de verdade. |
+| `docs/PROXIMO-PASSO.md` | Estado atual e o que falta. |
+| `prisma/schema.prisma` | O modelo de dados — fonte de verdade. |
+| `docs/ESPECIFICACAO.md` | O **porquê** de cada módulo. Consulta-se por secção, não se lê inteiro. |
 | `docs/DEPLOY.md` | Como publicar. |
 | `docs/adr/` | Decisões de arquitetura e porquê. |
 | `.env.example` | Todas as variáveis de ambiente necessárias. |
