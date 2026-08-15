@@ -13,8 +13,10 @@ import {
   listPendingAccounts,
   listRetouchDue,
 } from "@/server/services/client.service";
+import { listUpcomingReminders } from "@/server/services/appointment.service";
 import { PendingAccounts } from "./pending-accounts";
 import { RetouchDue } from "./retouch-due";
+import { AppointmentReminders } from "./appointment-reminders";
 
 export const metadata: Metadata = { title: "Início" };
 
@@ -64,6 +66,7 @@ export default async function DashboardPage() {
     monthRevenue,
     pending,
     retoques,
+    lembretes,
   ] = await Promise.all([
     clientWhere ? prisma.client.count({ where: clientWhere }) : 0,
     clientWhere
@@ -90,6 +93,7 @@ export default async function DashboardPage() {
     }),
     listPendingAccounts(actor),
     listRetouchDue(actor),
+    listUpcomingReminders(actor),
   ]);
 
   return (
@@ -105,7 +109,11 @@ export default async function DashboardPage() {
           decisão de alguém, e há pessoas à espera do outro lado. */}
       <PendingAccounts accounts={pending} />
 
-      {/* A seguir aos pedidos: também precisa de ação, mas ninguém está
+      {/* Marcações a horas de acontecer: mais urgente no tempo do que o
+          retoque, ainda que peça menos decisão. */}
+      <AppointmentReminders reminders={lembretes} />
+
+      {/* Por fim os retoques: também precisa de ação, mas ninguém está
           à espera do outro lado. É o que mais faz voltar clientes. */}
       <RetouchDue clients={retoques} />
 

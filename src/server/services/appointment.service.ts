@@ -818,3 +818,107 @@ export async function todayAppointments(actor: Actor) {
 
   return listAppointments(actor, { from: start, to: end });
 }
+
+// ── Lembretes de atendimento ─────────────────────────────────
+//
+// Mesma filosofia dos retoques (ver client.service.ts): LISTA DE TRABALHO,
+// não envio automático. A equipa vê quem se aproxima e manda a mensagem
+// com um clique — um envio em massa automático por WhatsApp exigia a API
+// da Meta e consentimento registado, o que está fora do que este negócio
+// tem hoje.
+//
+// Cada marcação entra numa destas três janelas, a que estiver mais perto:
+// 48h, 24h ou 2h antes. As janelas têm folga (não são um instante exato)
+// porque ninguém olha para o painel ao segundo — a equipa consulta-o
+// algumas vezes por dia, e a marcação tem de lá estar quando isso acontecer.
+//
+// Não muda o `status` da marcação. O enum já tem `REMINDED` à espera, mas
+// transformar isto num estado do ciclo de vida é a máquina de estados do
+// módulo de pipeline (spec secção 14) — decisão maior, para outra sessão.
+
+type ReminderWindow = "48h" | "24h" | "2h";
+
+const REMINDER_WINDOWS: { janela: ReminderWindow; deMin: number; ateMin: number }[] = [
+  { janela: "48h", deMin: 44 * 60, ateMin: 52 * 60 },
+  { janela: "24h", deMin: 20 * 60, ateMin: 28 * 60 },
+  { janela: "2h", deMin: 60, ateMin: 3 * 60 },
+];
+
+export interface AppointmentReminder {
+  appointmentId: string;
+  clientId: string;
+  firstName: string;
+  lastName: string | null;
+  phone: string;
+  startAt: Date;
+  professionalName: string;
+  services: string[];
+  window: ReminderWindow;
+}
+
+/** Etiqueta pronta para a UI — mantém o texto fora do componente. */
+export const REMINDER_WINDOW_LABEL: Record<ReminderWindow, string> = {
+  "48h": "daqui a 2 dias",
+  "24h": "amanhã",
+  "2h": "daqui a pouco",
+};
+
+export async function listUpcomingReminders(
+  actor: Actor,
+): Promise<AppointmentReminder[]> {
+  const scope = appointmentScope(actor);
+  const now = Date.now();
+
+  const janelaMaisLarga = REMINDER_WINDOWS.reduce(
+    (max, w) => Math.max(max, w.ateMin),
+    0,
+  );
+  const janelaMaisCedo = REMINDER_WINDOWS.reduce(
+    (min, w) => Math.min(min, w.deMin),
+    Infinity,
+  );
+
+  const candidatas = await prisma.appointment.findMany({
+    where: {
+      ...scope,
+      deletedAt: null,
+      status: "CONFIRMED",
+      startAt: {
+        gte: new Date(now + janelaMaisCedo * 60_000),
+        lte: new Date(now + janelaMaisLarga * 60_000),
+      },
+    },
+    orderBy: { startAt: "asc" },
+    select: {
+      id: true,
+      clientId: true,
+      startAt: true,
+      client: { select: { firstName: true, lastName: true, phone: true } },
+      professional: { select: { displayName: true } },
+      items: { select: { nameSnapshot: true } },
+    },
+  });
+
+  const resultado: AppointmentReminder[] = [];
+  for (const a of candidatas) {
+    const minutosAte = (a.startAt.getTime() - now) / 60_000;
+    const janela = REMINDER_WINDOWS.find(
+      (w) => minutosAte >= w.deMin && minutosAte <= w.ateMin,
+    );
+    if (!janela) continue; // entre janelas — nada a fazer agora
+
+    resultado.push({
+      appointmentId: a.id,
+      clientId: a.clientId,
+      firstName: a.client.firstName,
+      lastName: a.client.lastName,
+      phone: a.client.phone,
+      startAt: a.startAt,
+      professionalName: a.professional.displayName,
+      services: a.items.map((i) => i.nameSnapshot),
+      window: janela.janela,
+    });
+  }
+
+  return resultado;
+}
