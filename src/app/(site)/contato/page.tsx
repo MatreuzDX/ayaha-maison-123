@@ -100,6 +100,11 @@ export default function ContatoPage() {
             value={SITE.email}
             href={`mailto:${SITE.email}`}
           />
+          <Info
+            label="Instagram"
+            value={SITE.social.instagramHandle}
+            href={SITE.social.instagram}
+          />
         </dl>
         <WhatsappButton message={WA_MESSAGES.agendar} className="btn-dark mt-8">
           Conversar no WhatsApp

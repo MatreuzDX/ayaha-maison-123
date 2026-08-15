@@ -20,10 +20,21 @@ export const SITE = {
   hours: "Mediante agendamento",
   homeServiceNote:
     "Atendimento exclusivamente a domicílio, na casa da cliente. Cobrimos principalmente Lisboa e arredores, com base em Benfica. O deslocamento poderá ter custo adicional conforme a distância.",
+  /**
+   * Só o que existe mesmo.
+   *
+   * Até 10/08/2026 havia aqui três redes. O Instagram apontava para
+   * `ayahamaison` — o perfil da casa é `maisonayaha`, invertido, por isso o
+   * botão do rodapé levava a lado nenhum. O Facebook e o TikTok nunca
+   * existiram: `tiktok.com/@ayahamaison` responde "Couldn't find this
+   * account" e a página do Facebook não está disponível.
+   *
+   * Um ícone que não abre nada custa mais confiança do que a rede em falta.
+   * Se um dia forem criados, acrescentam-se aqui e os ícones voltam sozinhos.
+   */
   social: {
-    instagram: "https://instagram.com/ayahamaison",
-    facebook: "https://facebook.com/ayahamaison",
-    tiktok: "https://tiktok.com/@ayahamaison",
+    instagram: "https://www.instagram.com/maisonayaha/",
+    instagramHandle: "@maisonayaha",
   },
 } as const;
 

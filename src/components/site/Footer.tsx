@@ -65,11 +65,15 @@ export function Footer() {
             <WhatsappButton message={WA_MESSAGES.agendar} className="btn-gold mt-5">
               Agendar pelo WhatsApp
             </WhatsappButton>
-            <div className="mt-6 flex gap-4">
-              <SocialLink href={SITE.social.instagram} label="Instagram">IG</SocialLink>
-              <SocialLink href={SITE.social.facebook} label="Facebook">FB</SocialLink>
-              <SocialLink href={SITE.social.tiktok} label="TikTok">TT</SocialLink>
-            </div>
+            <a
+              href={SITE.social.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-ivory/20 text-ivory/80 hover:border-gold hover:text-gold-light mt-6 inline-flex items-center gap-3 rounded-full border px-5 py-2.5 text-sm transition"
+            >
+              <InstagramIcon />
+              {SITE.social.instagramHandle}
+            </a>
           </div>
         </div>
 
@@ -84,24 +88,22 @@ export function Footer() {
   );
 }
 
-function SocialLink({
-  href,
-  label,
-  children,
-}: {
-  href: string;
-  label: string;
-  children: React.ReactNode;
-}) {
+/** Glifo do Instagram, desenhado à mão — evita depender de uma biblioteca de ícones. */
+export function InstagramIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={label}
-      className="border-ivory/20 text-ivory/70 hover:border-gold hover:text-gold-light flex h-10 w-10 items-center justify-center rounded-full border text-xs tracking-wider transition"
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
     >
-      {children}
-    </a>
+      <rect x="2" y="2" width="20" height="20" rx="5.5" />
+      <circle cx="12" cy="12" r="4.2" />
+      <circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
   );
 }

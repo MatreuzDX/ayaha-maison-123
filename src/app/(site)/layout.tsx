@@ -60,7 +60,7 @@ export default async function SiteLayout({
     availableService: ["Extensão de cílios"],
     serviceType: "Atendimento a domicílio",
     priceRange: "€€",
-    sameAs: [SITE.social.instagram, SITE.social.facebook, SITE.social.tiktok],
+    sameAs: [SITE.social.instagram],
   };
 
   return (
