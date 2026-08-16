@@ -16,7 +16,12 @@
   --graphite-2: #242424;
   --gold: #c4a870;
   --gold-light: #d8c39a;
-  --gold-deep: #a98a4f;
+  /* Escurecido de #a98a4f a 16/08/2026: o tom original dava 3.0:1 sobre
+     marfim — abaixo do mínimo de 4.5:1 (WCAG AA) para o texto pequeno onde
+     este token mais aparece (etiquetas, taglines, "VER MAIS"). Este dá
+     4.5:1 no pior fundo claro (--ivory). Medido, não a olho — ver o
+     commit para as contas. Sobre fundo escuro usa-se --gold-light. */
+  --gold-deep: #866d3e;
   --ivory: #f7f5f1;
   --pearl: #fbfaf8;
   --blush: #e7d3ce;
