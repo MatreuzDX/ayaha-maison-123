@@ -51,6 +51,12 @@ de trabalho fecha (implementado, testado, commitado), atualiza-se aqui.
   pelo Mateus. Site inteiro ajustado — `SITE.studio` em site-config.ts é
   a fonte da morada. Ver "Decisões pendentes" abaixo para o que ficou por
   fazer no motor de agenda.
+- **SEO técnico:** faltavam `sitemap.xml` e `robots.txt` — não existia
+  nenhum dos dois. Criados `src/app/sitemap.ts` (8 páginas fixas + os 7
+  serviços, lidos ao vivo do CRM) e `src/app/robots.ts` (bloqueia
+  `/app`, `/conta`, `/api`). As páginas de serviço já tinham
+  `generateMetadata` próprio — isso, ao contrário do que pareceu numa
+  primeira leitura por grep, já estava bem feito.
 
 ## Fila de trabalho (por ordem de valor, a rever a cada sessão)
 
@@ -65,11 +71,6 @@ CRMs deste setor costumam ter.
 - [ ] **Loja/checkout** — `Product`, `Order`, `GiftCard` já existem no
   schema, sem interface nenhuma. Avaliar se vale a pena uma versão mínima
   (gift cards, já que têm modelo pronto) antes de produtos físicos.
-- [ ] **SEO técnico do site público** — verificar sitemap.xml, robots.txt,
-  meta descriptions por página, dados estruturados (JSON-LD já existe no
-  layout — conferir se está completo e correto por página).
-  Muitos "grandes sites" ganham tráfego orgânico por aqui, e é barato de
-  fazer bem.
 - [ ] **Verificar acessibilidade básica** — contraste, `alt` em imagens,
   navegação por teclado no site público e no portal da cliente.
 - [ ] **Página 404 e páginas de erro personalizadas** — hoje usam o
