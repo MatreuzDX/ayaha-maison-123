@@ -1,10 +1,11 @@
 /**
  * Agenda e deslocação. Ver especificação secções 12 e 13.
  *
- * Este é o módulo mais delicado do sistema, porque a AYAHA trabalha
- * exclusivamente ao domicílio. Duas marcações que no papel não se sobrepõem
- * podem ser fisicamente impossíveis: 10:00 em Benfica e 11:45 em Cascais não
- * colidem no relógio, mas colidem na estrada.
+ * Este é o módulo mais delicado do sistema, porque a AYAHA atende ao
+ * domicílio (além do espaço em Benfica desde 16/08/2026 — ver `SITE.studio`
+ * em site-config.ts). Duas marcações que no papel não se sobrepõem podem ser
+ * fisicamente impossíveis: 10:00 em Benfica e 11:45 em Cascais não colidem
+ * no relógio, mas colidem na estrada.
  *
  * A defesa é o campo `departAt` — a hora a que a profissional tem de sair para
  * chegar a tempo. A constraint SQL `appointment_no_overlap` exclui intervalos
@@ -14,6 +15,12 @@
  *
  * Este serviço calcula `departAt` antes de gravar e traduz o erro 23P01 do
  * Postgres numa mensagem que diz à pessoa o que fazer.
+ *
+ * NOTA: este cálculo ainda assume sempre deslocação até à cliente. Uma
+ * marcação no espaço físico não devia ter taxa de deslocação nem tempo de
+ * viagem — mas ensinar o motor a distinguir os dois casos é uma decisão de
+ * negócio (o preço muda? a duração do slot muda?) que ainda não foi tomada.
+ * Ver docs/TRABALHO-AUTONOMO.md.
  */
 
 import { Prisma, type AppointmentStatus } from "@prisma/client";

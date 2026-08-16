@@ -112,7 +112,7 @@ export default async function ServiceDetailPage({
                 </p>
               </div>
               <span className="bg-ivory text-onyx/60 rounded-full px-3 py-1 text-xs">
-                Atendimento a domicílio · Lisboa
+                No espaço ou a domicílio · Benfica, Lisboa
               </span>
             </div>
 

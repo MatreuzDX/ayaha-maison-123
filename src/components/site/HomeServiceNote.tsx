@@ -1,5 +1,11 @@
 import { SITE } from "@/lib/site-config";
 
+/**
+ * Até 15/08/2026 este bloco descrevia um negócio exclusivamente a
+ * domicílio. Desde 16/08/2026 há duas formas de atender — ver a nota em
+ * `SITE.homeServiceNote` (site-config.ts) para o porquê.
+ */
+
 /* Ícones de traço desenhados à mão — sem bibliotecas de ícones, para não
    destoar da identidade da maison. */
 function IconCasa() {
@@ -43,18 +49,18 @@ function IconDeslocamento() {
 }
 
 const ITEMS = [
-  { Icon: IconCasa, title: "Na sua casa", text: "O atendimento é realizado na casa da cliente, com todo o conforto e privacidade." },
+  { Icon: IconLocal, title: "No nosso espaço", text: `Em Benfica, na ${SITE.studio.full}.` },
+  { Icon: IconCasa, title: "Ou na sua casa", text: "Se preferir, vamos até si — com todo o conforto e privacidade." },
   { Icon: IconAgenda, title: "Mediante agendamento", text: "Horários combinados previamente, de acordo com a sua disponibilidade." },
-  { Icon: IconLocal, title: "Lisboa e arredores", text: "Cobrimos principalmente Lisboa e arredores, com base em Benfica." },
-  { Icon: IconDeslocamento, title: "Deslocamento", text: "O deslocamento poderá ter custo adicional conforme a distância." },
+  { Icon: IconDeslocamento, title: "Deslocamento", text: "Só ao domicílio: poderá ter custo adicional conforme a distância." },
 ];
 
-/** Bloco informativo do modelo de atendimento a domicílio. */
+/** Bloco informativo do modelo de atendimento — espaço ou domicílio. */
 export function HomeServiceNote({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
       <div className="border-gold/30 bg-gold/5 text-onyx/70 rounded-2xl border p-5 text-sm">
-        <span className="text-onyx font-medium">Atendimento a domicílio.</span>{" "}
+        <span className="text-onyx font-medium">No espaço ou a domicílio.</span>{" "}
         {SITE.homeServiceNote}
       </div>
     );
@@ -65,7 +71,7 @@ export function HomeServiceNote({ compact = false }: { compact?: boolean }) {
       <div className="border-onyx/10 flex flex-col gap-2 border-b pb-6 text-center">
         <p className="eyebrow">Como funciona</p>
         <h3 className="heading-serif text-onyx text-2xl md:text-3xl">
-          Atendimento a domicílio em Lisboa
+          No nosso espaço, em Benfica, ou a domicílio
         </h3>
       </div>
       <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">

@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Serviços",
   description:
-    "Extensão de cílios (fio a fio, volume brasileiro, russo, egípcio, fox eyes, gatinho e esquilo), com atendimento a domicílio em Lisboa.",
+    "Extensão de cílios (fio a fio, volume brasileiro, russo, egípcio, fox eyes, gatinho e esquilo) em Benfica, Lisboa. No espaço ou a domicílio.",
 };
 
 export default async function ServicosPage() {
@@ -25,7 +25,7 @@ export default async function ServicosPage() {
       <PageHero
         eyebrow="Serviços"
         title="Extensão de Cílios"
-        subtitle="Um design de olhar sob medida — no conforto da sua casa, em Lisboa."
+        subtitle="Um design de olhar sob medida — no nosso espaço, em Benfica, ou na sua casa."
         image="https://images.unsplash.com/photo-1596704017254-9b121068fb31?auto=format&fit=crop&w=1920&q=80"
       />
 
@@ -58,8 +58,9 @@ export default async function ServicosPage() {
               Fale com a AYAHA e agende a sua visita
             </h2>
             <p className="text-ivory/70 mx-auto mt-4 max-w-xl">
-              Atendemos a domicílio em Lisboa e arredores, mediante agendamento.
-              Peça já o seu orçamento pelo WhatsApp.
+              Atendemos no nosso espaço, em Benfica, ou a domicílio em Lisboa
+              e arredores, mediante agendamento. Peça já o seu orçamento pelo
+              WhatsApp.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <WhatsappButton

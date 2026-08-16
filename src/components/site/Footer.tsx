@@ -33,10 +33,18 @@ export function Footer() {
           <div>
             <h3 className="eyebrow text-gold-light">Atendimento</h3>
             <ul className="text-ivory/70 mt-5 space-y-3 text-sm">
-              <li>Atendimento a domicílio</li>
+              <li>No espaço ou a domicílio</li>
               <li>
-                {SITE.baseArea} · {SITE.serviceArea}
+                <a
+                  href={SITE.studio.mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-gold-light transition"
+                >
+                  {SITE.studio.full}
+                </a>
               </li>
+              <li>{SITE.serviceArea} (a domicílio)</li>
               <li>{SITE.hours}</li>
               <li>
                 <a
@@ -59,8 +67,8 @@ export function Footer() {
           <div>
             <h3 className="eyebrow text-gold-light">Experiência</h3>
             <p className="text-ivory/70 mt-5 text-sm">
-              Reserve o seu horário e viva a experiência AYAHA MAISON, no
-              conforto da sua casa.
+              Reserve o seu horário e viva a experiência AYAHA MAISON — no
+              nosso espaço ou no conforto da sua casa.
             </p>
             <WhatsappButton message={WA_MESSAGES.agendar} className="btn-gold mt-5">
               Agendar pelo WhatsApp

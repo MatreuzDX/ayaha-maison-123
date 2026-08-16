@@ -66,7 +66,7 @@ export default function ContatoPage() {
           Tirar dúvidas
         </WhatsappButton>
         <WhatsappButton
-          message="Olá, AYAHA MAISON! Podem indicar-me um orçamento para atendimento a domicílio?"
+          message="Olá, AYAHA MAISON! Podem indicar-me um orçamento?"
           className="btn-outline justify-center"
         >
           Solicitar orçamento
@@ -84,9 +84,14 @@ export default function ContatoPage() {
           agende o seu horário — respondemos com todo o carinho.
         </p>
         <dl className="mt-8 grid gap-5 text-sm sm:grid-cols-2">
-          <Info label="Atendimento" value="A domicílio · na casa da cliente" />
+          <Info label="Atendimento" value="No nosso espaço ou a domicílio" />
           <Info
-            label="Base / Região"
+            label="Morada do espaço"
+            value={SITE.studio.full}
+            href={SITE.studio.mapsUrl}
+          />
+          <Info
+            label="Região a domicílio"
             value={`${SITE.baseArea} · ${SITE.serviceArea}`}
           />
           <Info label="Horário" value={SITE.hours} />

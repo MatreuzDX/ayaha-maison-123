@@ -7,16 +7,16 @@ import { WA_MESSAGES, SITE } from "@/lib/site-config";
 export const metadata: Metadata = {
   title: "Perguntas Frequentes",
   description:
-    "Dúvidas sobre o atendimento a domicílio da AYAHA MAISON em Lisboa: como funciona, horários, região atendida e deslocamento.",
+    "Dúvidas sobre o atendimento da AYAHA MAISON, em Benfica, Lisboa: no espaço ou a domicílio — como funciona, horários, região e deslocamento.",
 };
 
 const FAQS = [
   {
     q: "O atendimento é onde?",
-    a: "O atendimento é realizado exclusivamente a domicílio, na casa da cliente. Levamos toda a estrutura e produtos até si, com conforto e privacidade.",
+    a: `Tem duas opções: no nosso espaço, na ${SITE.studio.full}, ou a domicílio, na sua casa — nesse caso levamos toda a estrutura e produtos até si.`,
   },
   {
-    q: "Que regiões atendem?",
+    q: "Que regiões atendem a domicílio?",
     a: "Cobrimos principalmente Lisboa e arredores, com base em Benfica. Se tiver dúvidas sobre a sua zona, fale connosco pelo WhatsApp.",
   },
   {
@@ -25,7 +25,7 @@ const FAQS = [
   },
   {
     q: "O deslocamento tem custo?",
-    a: "O deslocamento poderá ter um custo adicional dependendo da distância. Informamos o valor antes de confirmar o agendamento — sem surpresas.",
+    a: "Só ao domicílio — poderá ter um custo adicional dependendo da distância, informado antes de confirmar o agendamento. No nosso espaço não há custo de deslocamento.",
   },
   {
     q: "Que serviços oferecem?",
@@ -37,7 +37,7 @@ const FAQS = [
   },
   {
     q: "Preciso de alguma preparação antes?",
-    a: "Venha com os cílios limpos, sem maquilhagem nos olhos e sem lentes de contacto. Reserve um espaço tranquilo e com uma tomada por perto para a aplicação.",
+    a: "Venha com os cílios limpos, sem maquilhagem nos olhos e sem lentes de contacto. Se for a domicílio, reserve um espaço tranquilo e com uma tomada por perto para a aplicação.",
   },
   {
     q: "Como funciona o programa de fidelidade?",
@@ -51,7 +51,7 @@ export default function FaqPage() {
       <PageHero
         eyebrow="Ajuda"
         title="Perguntas Frequentes"
-        subtitle="Tudo o que precisa de saber sobre o atendimento a domicílio."
+        subtitle="Tudo o que precisa de saber sobre o atendimento, no espaço ou a domicílio."
         image="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=1920&q=80"
       />
 

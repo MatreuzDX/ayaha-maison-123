@@ -44,10 +44,10 @@ export default async function HomePage() {
               <span className="text-gold italic">olhar inesquecível</span>
             </h1>
             <p className="text-ivory/75 animate-fade-up mt-7 max-w-md text-lg leading-relaxed [animation-delay:260ms]">
-              Extensão de cílios de alto padrão, com{" "}
-              <span className="text-gold-light">atendimento a domicílio</span>{" "}
-              em Lisboa. Técnica, higiene e um design sob medida — no conforto
-              da sua casa.
+              Extensão de cílios de alto padrão, em Benfica, Lisboa. No{" "}
+              <span className="text-gold-light">nosso espaço</span> ou a
+              domicílio, à sua escolha — técnica, higiene e um design sob
+              medida.
             </p>
             <div className="animate-fade-up mt-10 flex flex-wrap gap-4 [animation-delay:400ms]">
               <WhatsappButton
@@ -154,10 +154,10 @@ export default async function HomePage() {
       <section className="from-pearl via-blush/40 to-ivory bg-gradient-to-br py-20">
         <div className="container-luxe grid gap-10 text-center sm:grid-cols-2 md:grid-cols-4">
           {[
-            { t: "A domicílio", d: "No conforto da sua casa" },
+            { t: "Espaço ou casa", d: "À sua escolha" },
             { t: "Feito à mão", d: "Cada leque, com cuidado" },
             { t: "Materiais premium", d: "Hipoalergénicos e seguros" },
-            { t: "Em Lisboa", d: "Benfica e arredores" },
+            { t: "Em Benfica", d: "Lisboa e arredores" },
           ].map((s, i) => (
             <Reveal key={s.t} delay={i * 80} variant="up">
               <div>

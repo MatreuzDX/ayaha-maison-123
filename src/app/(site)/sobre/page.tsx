@@ -8,7 +8,7 @@ import { SectionHeading } from "@/components/site/ui";
 export const metadata: Metadata = {
   title: "Sobre",
   description:
-    "A história da AYAHA MAISON — nascida do sonho de uma mãe, dedicada à arte do olhar, com atendimento a domicílio em Lisboa.",
+    "A história da AYAHA MAISON — nascida do sonho de uma mãe, dedicada à arte do olhar, em Benfica, Lisboa. No espaço ou a domicílio.",
 };
 
 const VALORES = [

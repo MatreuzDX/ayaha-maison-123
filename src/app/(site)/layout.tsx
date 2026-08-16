@@ -52,13 +52,16 @@ export default async function SiteLayout({
     email: SITE.email,
     address: {
       "@type": "PostalAddress",
+      streetAddress: SITE.studio.streetAddress,
+      postalCode: SITE.studio.postalCode,
       addressLocality: "Benfica",
       addressRegion: "Lisboa",
       addressCountry: "PT",
     },
+    hasMap: SITE.studio.mapsUrl,
     areaServed: { "@type": "City", name: "Lisboa" },
     availableService: ["Extensão de cílios"],
-    serviceType: "Atendimento a domicílio",
+    serviceType: "Extensão de cílios em estúdio ou a domicílio",
     priceRange: "€€",
     sameAs: [SITE.social.instagram],
   };
