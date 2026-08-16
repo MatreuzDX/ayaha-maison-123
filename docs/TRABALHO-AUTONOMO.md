@@ -45,6 +45,12 @@ de trabalho fecha (implementado, testado, commitado), atualiza-se aqui.
   painel do CRM — mesmo padrão dos retoques, 7 testes novos, verificado
   ao vivo. 174 testes no total.
 - Montada esta rotina de trabalho autónomo.
+- **Mudança de modelo de negócio:** deixou de ser exclusivamente ao
+  domicílio. Novo espaço físico em Benfica (partilhado com o Studio
+  Izabela Vieira, R. Gonçalves Viana 6A, 1500-134 Lisboa), confirmado
+  pelo Mateus. Site inteiro ajustado — `SITE.studio` em site-config.ts é
+  a fonte da morada. Ver "Decisões pendentes" abaixo para o que ficou por
+  fazer no motor de agenda.
 
 ## Fila de trabalho (por ordem de valor, a rever a cada sessão)
 
@@ -73,6 +79,14 @@ CRMs deste setor costumam ter.
 
 ## Decisões pendentes do Mateus (não avançar sem)
 
+- **Marcação no espaço vs. a domicílio, no motor de agenda.** Desde
+  16/08/2026 há um espaço físico em Benfica, mas
+  `appointment.service.ts` ainda assume sempre deslocação até à cliente
+  — toda marcação calcula `departAt`, tempo e taxa de viagem. Uma
+  marcação no espaço não devia ter nada disso, mas mexer exige decidir:
+  o preço muda (sem taxa de deslocação)? A duração do slot muda (sem
+  tempo de chegada/saída)? Como escolhe a cliente entre as duas no
+  `/conta/marcar`? Não avançar nisto sem o Mateus confirmar.
 - **Recompensa "upgrade de técnica"** não vale nada com preço único de
   €30 — sugerido substituir por "6.º atendimento grátis". Muda-se nas
   Definições do CRM, mas é decisão da fundadora.
