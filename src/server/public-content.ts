@@ -172,13 +172,11 @@ export interface GalleryItem {
 export const GALLERY: GalleryItem[] = [
   // Trabalho real, agosto de 2026 — as primeiras entradas são as mais
   // recentes de propósito: é o que a visitante vê primeiro.
-  {
-    id: "g-cliente-video-1",
-    title: "Resultado em vídeo",
-    category: "Trabalho real",
-    image: "/images/galeria/cliente-video-capa.jpg",
-    video: "/videos/cliente-resultado-1.mp4",
-  },
+  //
+  // Havia aqui um vídeo de cliente; saiu a 16/08/2026 por decisão do
+  // Mateus — a galeria fica só com fotografia. O suporte a vídeo continua
+  // de pé (o campo `video` acima e o play em GalleryTile), à espera do
+  // próximo: basta voltar a acrescentar uma entrada com `video`.
   {
     id: "g-cliente-1",
     title: "Volume · resultado final",

@@ -18,7 +18,7 @@ limpos.
 
 ### Site público
 Completo: início, sobre, serviços (+ página por serviço), galeria com
-trabalho real (2 fotos e 1 vídeo de cliente), depoimentos, FAQ, contacto,
+trabalho real (só fotografia — o vídeo saiu a 16/08), depoimentos, FAQ, contacto,
 AYAHA Club. Fixo em modo claro (`.site-light`) — ver a nota abaixo.
 
 ### Portal da cliente (`/conta`)
