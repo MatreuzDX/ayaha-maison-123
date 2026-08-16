@@ -69,3 +69,16 @@ dos dois existe (confirmado ao vivo). Ver [[ayaha-crm]] na memória.
   Funciona com `node --env-file=.env.local --env-file=.env --import tsx
   script.mts`, importando `prisma` de `src/server/db` (nunca instanciar
   `new PrismaClient()` à parte — Prisma 7 exige o driver adapter).
+- **Usar `npm run build:check`, nunca `npm run build` em local.** O
+  `next build` corre com `NODE_ENV=production`, e o `.env` local tem
+  `DEMO_MODE=true` — a guarda em `src/lib/demo.ts` recusa arrancar nessa
+  combinação, e faz muito bem (é o que impede o botão "entrar sem
+  palavra-passe" de chegar a produção). O problema é que a mensagem
+  cuidada dessa guarda vem enterrada: o Next só mostra `Failed to collect
+  page data for /login`, que não sugere nada. O `build:check` existe
+  precisamente para isto — limpa o `DEMO_MODE` e constrói na mesma.
+- **Testar `error.tsx` exige um build de produção.** É componente de
+  cliente; em `next dev` o overlay de erro do Next tapa-o e nunca se vê o
+  que a cliente veria. Verificar com `build:check` + `next start`, e num
+  browser real — o `curl` também não chega, porque a página só aparece
+  depois do JavaScript correr.

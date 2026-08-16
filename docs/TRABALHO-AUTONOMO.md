@@ -62,6 +62,16 @@ de trabalho fecha (implementado, testado, commitado), atualiza-se aqui.
   `--gold-deep` dava 3.0:1 sobre marfim em todo o texto pequeno dourado;
   escurecido para `#866d3e` (4.5:1 medido no pior fundo). Fundos escuros
   intocados.
+- **Páginas de erro:** não existia nenhuma — o site mostrava o ecrã
+  genérico do Next. Criadas quatro: `app/not-found.tsx` (endereços
+  inexistentes), `(site)/not-found.tsx` (serviço desativado, já com
+  menu), `(site)/error.tsx` (erro em execução, mostra o `digest` mas
+  nunca a mensagem técnica) e `app/global-error.tsx` (falha no layout de
+  raiz, com estilos à mão por não haver CSS nessa altura). Duas
+  armadilhas descobertas pelo caminho ficaram registadas em
+  `PROXIMO-PASSO.md`: `npm run build` falha em local por causa da guarda
+  do `DEMO_MODE`, e o `error.tsx` só se consegue testar num build de
+  produção com browser real.
 
 ## Fila de trabalho (por ordem de valor, a rever a cada sessão)
 
@@ -76,8 +86,6 @@ CRMs deste setor costumam ter.
 - [ ] **Loja/checkout** — `Product`, `Order`, `GiftCard` já existem no
   schema, sem interface nenhuma. Avaliar se vale a pena uma versão mínima
   (gift cards, já que têm modelo pronto) antes de produtos físicos.
-- [ ] **Página 404 e páginas de erro personalizadas** — hoje usam o
-  genérico do Next.js. Um site "grande" trata isto como parte da marca.
 - [ ] **Performance de imagens** — conferir se `next/image` está a ser
   usado consistentemente nas páginas públicas (galeria, serviços).
 
