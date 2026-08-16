@@ -57,6 +57,11 @@ de trabalho fecha (implementado, testado, commitado), atualiza-se aqui.
   `/app`, `/conta`, `/api`). As páginas de serviço já tinham
   `generateMetadata` próprio — isso, ao contrário do que pareceu numa
   primeira leitura por grep, já estava bem feito.
+- **Acessibilidade:** `alt` em imagens ✓ (já estava), foco por teclado ✓
+  (regra `:focus-visible` global já existia), contraste ✗ → corrigido: o
+  `--gold-deep` dava 3.0:1 sobre marfim em todo o texto pequeno dourado;
+  escurecido para `#866d3e` (4.5:1 medido no pior fundo). Fundos escuros
+  intocados.
 
 ## Fila de trabalho (por ordem de valor, a rever a cada sessão)
 
@@ -71,8 +76,6 @@ CRMs deste setor costumam ter.
 - [ ] **Loja/checkout** — `Product`, `Order`, `GiftCard` já existem no
   schema, sem interface nenhuma. Avaliar se vale a pena uma versão mínima
   (gift cards, já que têm modelo pronto) antes de produtos físicos.
-- [ ] **Verificar acessibilidade básica** — contraste, `alt` em imagens,
-  navegação por teclado no site público e no portal da cliente.
 - [ ] **Página 404 e páginas de erro personalizadas** — hoje usam o
   genérico do Next.js. Um site "grande" trata isto como parte da marca.
 - [ ] **Performance de imagens** — conferir se `next/image` está a ser
