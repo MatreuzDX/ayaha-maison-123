@@ -16,8 +16,10 @@ O modelo de dados é `prisma/schema.prisma`, nunca a especificação.
 
 ## O negócio em cinco linhas
 
-**AYAHA MAISON** — extensão de cílios **exclusivamente ao domicílio**, base em
-Benfica, Lisboa. Fundado por volta de 21/07/2025. Equipa alvo: 2 a 5
+**AYAHA MAISON** — extensão de cílios em **duas modalidades, à escolha da
+cliente**: no **espaço em Benfica** (R. Gonçalves Viana 6A, 1500-134 Lisboa,
+partilhado com o Studio Izabela Vieira) **ou ao domicílio**. Mudou a 16/08/2026
+(commit `f55c2cc`) — até aí era exclusivamente domicílio. Ver `docs/DIARIO-DO-SITE.md`. Fundado por volta de 21/07/2025. Equipa alvo: 2 a 5
 profissionais. Moeda EUR, locale pt-PT, fuso Europe/Lisbon. Canal principal:
 WhatsApp `+351 933 055 502`.
 
@@ -52,6 +54,11 @@ ponto→euro.
    (`src/lib/datetime.ts`).
 6. Textos da interface em **pt-PT**. Mensagens de erro acionáveis, não genéricas.
 7. Percentagens em basis points (`4000` = 40%).
+8. **Toda a alteração que alguém veja no site fica registada em
+   `docs/DIARIO-DO-SITE.md`** — o quê, quando, porquê, e o commit. Texto,
+   imagens, cores, preços, morada, serviços: tudo. O PC já foi formatado uma
+   vez e o histórico do trabalho quase se perdeu. Registar não é burocracia,
+   é a única cópia legível do porquê das decisões.
 
 ## Stack
 
