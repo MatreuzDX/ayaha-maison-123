@@ -363,8 +363,18 @@ async function main() {
   console.log(`✓ ${TAGS.length} etiquetas`);
 
   // ── Clientes de demonstração ───────────────────────────────
+  // Só entram se forem pedidas. Um arranque real de negócio começa com zero
+  // clientes: 20 nomes inventados na base de um negócio a sério são mentira
+  // à equipa e sujam relatórios, marketing e fidelidade desde o primeiro dia.
+  // Ver AYAHA-SKILLS/honestidade-no-produto.
+  const wantsDemoClients =
+    process.env.SEED_DEMO_CLIENTS === "true" || process.env.DEMO_MODE === "true";
   const existingClients = await prisma.client.count({ where: { unitId: unit.id } });
-  if (existingClients > 0) {
+  if (!wantsDemoClients) {
+    console.log(
+      "\n(sem clientes de demonstração — definir SEED_DEMO_CLIENTS=true para as criar)",
+    );
+  } else if (existingClients > 0) {
     console.log(`\n(${existingClients} clientes já existem — a saltar geração)`);
   } else {
     const now = Date.now();
