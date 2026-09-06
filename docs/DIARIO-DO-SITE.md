@@ -35,6 +35,27 @@ entram aqui** — vão no commit e basta.
 
 # 2026
 
+## Setembro
+
+### 06/09/2026 — Arranque limpo: o seed deixa de inventar 20 clientes
+**Commit:** `d69d2b4`
+**O que mudou:** ao semear uma base vazia, o sistema criava sempre 20 clientes
+fictícias (nomes inventados, telefones falsos, e-mails `@exemplo.pt`). Passa a
+ser preciso pedi-las com `SEED_DEMO_CLIENTS=true`.
+**Porquê:** para um negócio a arrancar a sério, 20 nomes inventados sujam
+relatórios, marketing e fidelidade desde o primeiro dia, e mentem à equipa
+sobre o tamanho do negócio. O Mateus pediu o site "como se fosse novo" — e
+"novo" tem de querer dizer zero clientes.
+**Verificado:** base zerada e semeada de novo dá **0 clientes** com a
+configuração real toda de pé (7 serviços a €30, 5 zonas, AYAHA Club com 3
+recompensas, 8 materiais, 3 contas de equipa). 181 testes a passar.
+**Atenção:** isto foi feito e verificado na base **local**. A produção
+continua com os dados que tinha.
+
+### 06/09/2026 — Análise de saúde antes de sair da Vercel
+**Sem alterações ao site.** Registo do que foi verificado — ver a secção
+"Estado de saúde" no fim deste ficheiro.
+
 ## Agosto
 
 ### 16/08/2026 — Página de marketing com quatro segmentos de clientes
@@ -173,3 +194,43 @@ o ar. O que estava mal está escrito em
 | `git log` | O detalhe técnico de cada alteração. As mensagens são longas de propósito. |
 | `Desktop\CONTEXTO-TRABALHO\` | Inventário de todos os projetos, contas e serviços. |
 | `Desktop\AYAHA-SKILLS\` | Lições que já custaram tempo. |
+
+---
+
+# Estado de saúde — verificado a 06/09/2026
+
+| Verificação | Resultado |
+|---|---|
+| `npm run typecheck` | ✅ limpo |
+| `npm run lint` | ✅ limpo |
+| `npm test` | ✅ **181 testes, 14 ficheiros, 0 falhas** |
+| `npm run build:check` | ✅ compila |
+| Site em produção | ✅ HTTP 200, base de dados a responder |
+| Rotas protegidas sem sessão | ✅ 307 para `/login`, sem fuga de dados |
+
+## O que encontrei e ainda não está resolvido
+
+| # | O quê | Gravidade |
+|---|---|---|
+| 1 | **10 imagens do site são stock do Unsplash**, carregadas do servidor deles em cada visita. Num negócio de imagem, o site mostra olhos que não são de clientes da AYAHA. Se o Unsplash falhar ou mudar as regras, o site fica sem imagens. | 🔴 alta |
+| 2 | **`engines` não está definido** no `package.json`. A Vercel usa Node 24.x; outro alojamento pode escolher outra versão e partir o build. | 🟠 média (crítica ao migrar) |
+| 3 | **Não há rotas `/api/cron/*`**, embora a especificação (§ do `CRON_SECRET`) as preveja. Os lembretes de 48h/24h/2h **aparecem no CRM**, mas **nada é enviado automaticamente** à cliente. | 🟠 média |
+| 4 | **`output: "standalone"` não está no `next.config.ts`.** Não é preciso na Vercel; é o que torna o auto-alojamento simples (imagem Docker pequena). | 🟡 baixa |
+| 5 | Existe um projeto Supabase `INACTIVE` (`iqvkgazpyouozhwgdick`) que **não** é o da produção. Convém perceber se é lixo. | 🟡 baixa |
+| 6 | `npm run db:reset` usa `--skip-seed`, que **não existe no Prisma 7**. O script falha se alguém o correr. | 🟡 baixa |
+
+## Sair da Vercel — o que está a favor
+
+**Não há nenhuma dependência da Vercel.** Zero pacotes `@vercel/*`, zero APIs
+próprias da plataforma. O `vercel.json` só define o comando de build, o
+framework e a região (`fra1`, Frankfurt).
+
+O que o novo alojamento precisa de ter:
+
+- **Node a correr `next start`** — todas as páginas são dinâmicas
+  (`ƒ server-rendered on demand`). **Não serve alojamento estático**, nem
+  cPanel simples: tem de ser VPS, Docker, Railway, Fly.io, Render ou parecido.
+- **Postgres** acessível (hoje Supabase).
+- **As 21 variáveis de ambiente** listadas em `.env.example`.
+- **Um agendador** (cron do sistema) se os lembretes automáticos passarem a
+  existir — ver ponto 3.
