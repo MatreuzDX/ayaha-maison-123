@@ -27,7 +27,7 @@ export default async function FidelidadePage() {
         eyebrow="Programa de fidelidade"
         title={program.name}
         subtitle={`A cada ${program.stampsRequired} atendimentos, uma recompensa à sua escolha.`}
-        image="https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=1920&q=80"
+        image="/images/cilios-real-2.jpg"
       />
 
       <section className="container-luxe py-20 md:py-24">

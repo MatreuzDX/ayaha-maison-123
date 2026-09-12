@@ -37,6 +37,30 @@ entram aqui** — vão no commit e basta.
 
 ## Setembro
 
+### 13/09/2026 — Fotografias reais, login com Google de volta, contas de teste
+**O que mudou:**
+- **Fotografias de banco de imagens fora do site.** Havia 14 (Unsplash): no
+  topo de Serviços uma pessoa num portátil, em Fidelidade e Depoimentos mãos a
+  pintar unhas, na Galeria uma mulher a enrolar o cabelo. Tudo trocado pelas
+  fotografias da AYAHA (`cilios-real-1/2`, `galeria/cliente-resultado-1`,
+  `galeria/cliente-aplicacao-1`), incluindo as dos 7 serviços no banco.
+- **Galeria "Os nossos resultados" só com trabalho real.** Saíram 6 fotografias
+  de banco de imagens que estavam lá como se fossem resultados da AYAHA.
+- **"Continuar com Google" de volta** no login e no registo, a pedido do Mateus
+  (tinha saído a 02/08 porque o ecrã de consentimento do Google estava em modo
+  de teste). O login passa a dizer quando o Google falha — antes voltava ao
+  formulário sem explicar nada.
+- **Contas para apresentar o site:** administradora `mateusdadiva16@gmail.com`
+  (criada pelo seed no deploy) e uma cliente de teste já aprovada,
+  `cliente.teste@exemplo.pt`. As senhas **não** estão aqui.
+**Porquê:** o Mateus vai apresentar o site à cliente. Um site de cílios com
+fotografias de unhas e cabelo, e uma galeria de "resultados" que não são dela,
+não pode ir a essa reunião.
+**Por fazer (só o Mateus):** no Google Cloud, autorizar o endereço de retorno
+`https://ayaha-crm.vercel.app/api/auth/callback/google` e publicar o ecrã de
+consentimento — sem isso o botão Google falha para quem não estiver na lista
+de testadores. Mudar as senhas das contas depois de apresentar.
+
 ### 13/09/2026 — Banco novo no Supabase, ligado à Vercel; site no ar com banco
 **O que mudou:** o site voltou a ter banco de dados. O Mateus mudou de ideias e
 pediu Supabase outra vez, depois de apagar um projeto parado para caber no

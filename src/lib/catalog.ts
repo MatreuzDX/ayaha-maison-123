@@ -39,7 +39,7 @@ export const CATALOG_SERVICES: readonly CatalogService[] = [
     tagline: "O clássico. Um fio por cada cílio natural.",
     displayCategory: "Clássico",
     imageUrl:
-      "https://images.unsplash.com/photo-1548902378-2ec44c906391?auto=format&fit=crop&w=1200&q=80",
+      "/images/cilios-real-1.jpg",
     highlights: ["Efeito natural", "Leveza total", "Ideal para iniciantes"],
     longDescription: [
       "A técnica fio a fio é ideal para quem busca um resultado natural, como se fosse rímel bem aplicado.",
@@ -53,7 +53,7 @@ export const CATALOG_SERVICES: readonly CatalogService[] = [
     tagline: "Volume natural e leve, efeito preenchido.",
     displayCategory: "Volume",
     imageUrl:
-      "https://images.unsplash.com/photo-1528047128849-2382ff646073?auto=format&fit=crop&w=1200&q=80",
+      "/images/galeria/cliente-resultado-1.jpg",
     highlights: ["Fios em Y", "Efeito preenchido", "Baixa manutenção"],
     longDescription: [
       "O Volume Brasileiro utiliza fios pré-montados em Y, criando um efeito de destaque com aparência preenchida e uniforme.",
@@ -67,7 +67,7 @@ export const CATALOG_SERVICES: readonly CatalogService[] = [
     tagline: "Máximo volume, leques finos e densos.",
     displayCategory: "Volume",
     imageUrl:
-      "https://images.unsplash.com/photo-1639629509821-c54cdd984227?auto=format&fit=crop&w=1200&q=80",
+      "/images/cilios-real-2.jpg",
     highlights: ["Fios 0.05mm", "Leques 4D a 6D", "Duração até 4 semanas"],
     longDescription: [
       "O Volume Russo é uma assinatura da AYAHA MAISON. Aplicamos leques feitos à mão com fios ultraleves, respeitando a saúde do cílio natural.",
@@ -81,7 +81,7 @@ export const CATALOG_SERVICES: readonly CatalogService[] = [
     tagline: "Efeito dramático com desenho marcado.",
     displayCategory: "Volume",
     imageUrl:
-      "https://images.unsplash.com/photo-1633346152343-5486573d3d50?auto=format&fit=crop&w=1200&q=80",
+      "/images/galeria/cliente-aplicacao-1.jpg",
     highlights: ["Efeito alongado", "Densidade elegante", "Mapping personalizado"],
     longDescription: [
       "O Volume Egípcio combina densidade e alongamento, com um desenho que aprofunda e estica o olhar.",
@@ -95,7 +95,7 @@ export const CATALOG_SERVICES: readonly CatalogService[] = [
     tagline: "Olhar alongado e elevado nas pontas.",
     displayCategory: "Efeitos",
     imageUrl:
-      "https://images.unsplash.com/photo-1542833807-ad5af0977050?auto=format&fit=crop&w=1200&q=80",
+      "/images/cilios-real-2.jpg",
     highlights: ["Mapping personalizado", "Efeito lifting", "Ar felino"],
     longDescription: [
       "O efeito Fox Eyes cria um alongamento estratégico no canto externo dos olhos, para um olhar mais puxado e sofisticado.",
@@ -109,7 +109,7 @@ export const CATALOG_SERVICES: readonly CatalogService[] = [
     tagline: "Cantos externos alongados, olhar felino.",
     displayCategory: "Efeitos",
     imageUrl:
-      "https://images.unsplash.com/photo-1633276115947-8d35f394a309?auto=format&fit=crop&w=1200&q=80",
+      "/images/cilios-real-1.jpg",
     highlights: ["Olhar levantado", "Efeito charmoso", "Acabamento delicado"],
     longDescription: [
       "O efeito Gatinho realça o canto externo dos olhos, criando um olhar levantado, doce e sedutor.",
@@ -123,7 +123,7 @@ export const CATALOG_SERVICES: readonly CatalogService[] = [
     tagline: "Elevação no terço médio, olhar aberto.",
     displayCategory: "Efeitos",
     imageUrl:
-      "https://images.unsplash.com/photo-1590556409324-aa1d726e5c3c?auto=format&fit=crop&w=1200&q=80",
+      "/images/galeria/cliente-resultado-1.jpg",
     highlights: ["Efeito penteado", "Textura marcante", "Volume moderno"],
     longDescription: [
       "O efeito Esquilo brinca com a direção dos fios, com um pico texturizado que dá volume e movimento ao olhar.",

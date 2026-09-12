@@ -21,7 +21,7 @@ export default async function LoginPage({
   if (await getActor()) redirect("/app");
   if (await getClientSession()) redirect("/conta");
 
-  const { proximo } = await searchParams;
+  const { proximo, erro } = await searchParams;
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-[var(--bg)] px-4 py-12">
@@ -36,6 +36,18 @@ export default async function LoginPage({
         </div>
 
         <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-6 shadow-sm">
+          {/* O retorno do Google manda para aqui com ?erro=google quando algo
+              falha (cancelou, conta recusada, sessão expirada). Sem esta
+              mensagem a pessoa voltava ao login sem saber porquê. */}
+          {erro === "google" && (
+            <div
+              role="alert"
+              className="mb-4 rounded-[var(--radius)] border border-[var(--danger)] bg-[var(--danger-bg)] px-3 py-2.5 text-sm text-[var(--danger)]"
+            >
+              Não foi possível entrar com o Google. Tente outra vez ou use o
+              e-mail e a palavra-passe.
+            </div>
+          )}
           <LoginForm proximo={proximo} />
           {IS_DEMO && (
             <DemoLogin email={process.env.SEED_OWNER_EMAIL ?? "demo"} />

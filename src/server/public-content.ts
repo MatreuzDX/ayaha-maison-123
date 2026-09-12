@@ -71,7 +71,7 @@ export interface PublicService {
 
 /** Fallback para serviços que ainda não têm foto/destaques preenchidos. */
 const PLACEHOLDER_IMAGE =
-  "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=1200&q=80";
+  "/images/cilios-real-1.jpg";
 
 function toPublicService(s: {
   slug: string;
@@ -244,6 +244,10 @@ export const GALLERY: GalleryItem[] = [
   // Mateus — a galeria fica só com fotografia. O suporte a vídeo continua
   // de pé (o campo `video` acima e o play em GalleryTile), à espera do
   // próximo: basta voltar a acrescentar uma entrada com `video`.
+  //
+  // Saíram a 13/09/2026 seis fotografias de banco de imagens que estavam aqui
+  // como "resultados" — não eram trabalho da AYAHA. Numa galeria que se chama
+  // "Os nossos resultados", só entra trabalho real.
   {
     id: "g-cliente-1",
     title: "Volume · resultado final",
@@ -267,47 +271,5 @@ export const GALLERY: GalleryItem[] = [
     title: "Detalhe do olhar",
     category: "Efeitos",
     image: "/images/cilios-real-2.jpg",
-  },
-  {
-    id: "g3",
-    title: "Clássico Natural",
-    category: "Clássico",
-    image:
-      "https://images.unsplash.com/photo-1548902378-2ec44c906391?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "g4",
-    title: "Olhar Marcante",
-    category: "Volume",
-    image:
-      "https://images.unsplash.com/photo-1633346152343-5486573d3d50?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "g5",
-    title: "Efeito Esquilo",
-    category: "Efeitos",
-    image:
-      "https://images.unsplash.com/photo-1590556409324-aa1d726e5c3c?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "g6",
-    title: "Detalhe do acabamento",
-    category: "Efeitos",
-    image:
-      "https://images.unsplash.com/photo-1633276115947-8d35f394a309?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "g7",
-    title: "Aplicação em detalhe",
-    category: "Processo",
-    image:
-      "https://images.unsplash.com/photo-1674049406467-824ea37c7184?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "g8",
-    title: "Experiência premium",
-    category: "Efeitos",
-    image:
-      "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=800&q=80",
   },
 ];

@@ -30,7 +30,7 @@ export default function DepoimentosPage() {
             ? `Avaliação média ${avg}/5 entre as nossas clientes.`
             : "O negócio é novo — as primeiras histórias estão a caminho."
         }
-        image="https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=1920&q=80"
+        image="/images/galeria/cliente-resultado-1.jpg"
       />
 
       <section className="container-luxe py-24">

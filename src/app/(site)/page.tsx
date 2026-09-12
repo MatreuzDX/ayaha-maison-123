@@ -25,7 +25,7 @@ export default async function HomePage() {
       {/* HERO */}
       <section className="bg-onyx relative flex min-h-[92vh] items-center overflow-hidden">
         <Image
-          src="https://images.unsplash.com/photo-1715195060250-b321e5cd5171?auto=format&fit=crop&w=1920&q=80"
+          src="/images/cilios-real-2.jpg"
           alt="Olhar com extensão de cílios AYAHA MAISON"
           fill
           priority

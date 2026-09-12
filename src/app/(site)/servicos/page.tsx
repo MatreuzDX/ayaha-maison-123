@@ -26,7 +26,7 @@ export default async function ServicosPage() {
         eyebrow="Serviços"
         title="Extensão de Cílios"
         subtitle="Um design de olhar sob medida — no nosso espaço, em Benfica, ou na sua casa."
-        image="https://images.unsplash.com/photo-1596704017254-9b121068fb31?auto=format&fit=crop&w=1920&q=80"
+        image="/images/galeria/cliente-aplicacao-1.jpg"
       />
 
       <section className="container-luxe py-16 md:py-24">

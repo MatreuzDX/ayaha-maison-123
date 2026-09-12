@@ -16,7 +16,7 @@ export default function GaleriaPage() {
         eyebrow="Galeria"
         title="Os nossos resultados"
         subtitle="Cada olhar, uma obra."
-        image="https://images.unsplash.com/photo-1560869713-7d0a29430803?auto=format&fit=crop&w=1920&q=80"
+        image="/images/cilios-real-1.jpg"
       />
 
       <section className="container-luxe py-24">

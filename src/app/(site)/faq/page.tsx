@@ -52,7 +52,7 @@ export default function FaqPage() {
         eyebrow="Ajuda"
         title="Perguntas Frequentes"
         subtitle="Tudo o que precisa de saber sobre o atendimento, no espaço ou a domicílio."
-        image="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=1920&q=80"
+        image="/images/galeria/cliente-resultado-1.jpg"
       />
 
       <section className="container-luxe py-16 md:py-24">
