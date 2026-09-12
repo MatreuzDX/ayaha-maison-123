@@ -6,6 +6,8 @@
 !.env.example
 
 # Fora do que vai para produção: nada disto é preciso para construir a app.
+# ATENÇÃO: `prisma/` TEM de subir — o build corre prisma/preparar-banco.mjs,
+# o seed e as migrações. Não pôr aqui nada que o buildCommand do vercel.json use.
 docs/
 tests/
 .github/

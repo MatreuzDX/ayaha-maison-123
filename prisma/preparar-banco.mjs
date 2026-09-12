@@ -6,6 +6,9 @@
  *    SEED_OWNER_EMAIL e SEED_OWNER_PASSWORD estiverem definidas — a conta de
  *    administração. Nunca cria clientes nem equipa inventadas.
  *
+ * Vive em prisma/ e não em scripts/ porque o .vercelignore exclui scripts/ do
+ * upload — o primeiro deploy (12/09/2026) falhou com MODULE_NOT_FOUND por isso.
+ *
  * Porquê no build: a migração tem de entrar em produção ANTES do código que
  * depende dela (ver AYAHA-SKILLS/deploy-vercel-seguro). Se falhar, o build
  * falha e a Vercel mantém o deploy anterior no ar.

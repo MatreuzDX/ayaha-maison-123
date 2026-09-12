@@ -51,7 +51,7 @@ passa a ser criado no separador **Storage** da Vercel (Neon, gratuito). O
 Supabase gratuito também já estava no limite de 2 projetos.
 **O que mudou no código:**
 - A Vercel aplica as migrações e o seed sozinha em cada deploy de produção
-  (`scripts/preparar-banco.mjs`). Deixa de haver passos à mão.
+  (`prisma/preparar-banco.mjs`). Deixa de haver passos à mão.
 - **Falha de segurança fechada:** o seed criava a Sofia e a Inês — profissionais
   inventadas — **com a palavra-passe da administradora**. Em produção seriam
   duas contas falsas com acesso ao CRM. Passam a existir só em demonstração.

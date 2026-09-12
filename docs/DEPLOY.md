@@ -93,7 +93,7 @@ node -e "console.log('CRON_SECRET=' + require('crypto').randomBytes(32).toString
 ## 4. Primeiro arranque
 
 **Não há nada para correr à mão.** O `buildCommand` do `vercel.json` chama
-`scripts/preparar-banco.mjs` antes do `next build`, em cada deploy de produção:
+`prisma/preparar-banco.mjs` antes do `next build`, em cada deploy de produção:
 
 1. `prisma migrate deploy` — aplica as migrações em falta.
 2. O seed, que é idempotente — unidade, 7 serviços a €30, zonas de deslocação,

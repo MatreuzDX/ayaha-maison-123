@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "prisma generate && node scripts/preparar-banco.mjs && next build",
+  "buildCommand": "prisma generate && node prisma/preparar-banco.mjs && next build",
   "framework": "nextjs",
   "regions": [
     "fra1"
