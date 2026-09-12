@@ -37,6 +37,28 @@ entram aqui** — vão no commit e basta.
 
 ## Setembro
 
+### 13/09/2026 — Banco novo no Supabase, ligado à Vercel; site no ar com banco
+**O que mudou:** o site voltou a ter banco de dados. O Mateus mudou de ideias e
+pediu Supabase outra vez, depois de apagar um projeto parado para caber no
+limite de 2 projetos grátis.
+**Onde vive:** Supabase `ayaha-crm` (`sjidqzuelheuhopapmff`, Frankfurt), na org
+dele. A app liga pelo pooler de sessão com um utilizador próprio, `ayaha_app` —
+as tabelas são dele e por isso **não** ficam expostas na API pública do
+Supabase (verificado: 0 de 69 tabelas visíveis a `anon`/`authenticated`).
+**Verificado no ar:** o build aplicou as migrações e correu o seed na própria
+Vercel; 13 páginas no endereço principal sem ecrã de erro; nenhum
+`banco indisponível` nos logs, ou seja, o site lê do banco e não do catálogo de
+reserva.
+**Dois problemas encontrados pelo caminho:**
+- Um banco Supabase criado pelo painel da Vercel (`ayaha-crm-db`) ficou
+  **suspenso** e, ligado ao projeto, **bloqueava todos os deploys** com
+  `Resource provisioning failed`. Foi desligado do projeto (não apagado).
+- `sslmode=require` no endereço deixa o Prisma aplicar as migrações mas **parte
+  a app** (`self-signed certificate in certificate chain`). O endereço usa
+  `sslmode=require&uselibpqcompat=true`.
+**Por fazer:** conta de administração — o Mateus define `SEED_OWNER_EMAIL` e
+`SEED_OWNER_PASSWORD` na Vercel e faz Redeploy.
+
 ### 12/09/2026 — Site em erro 500: o banco desapareceu; passa a viver na Vercel
 **O que se viu:** a página inicial e a de serviços mostravam "Algo correu mal —
 Não foi possível mostrar esta página" (código `2691905583`). Sobre, FAQ,

@@ -14,7 +14,16 @@ preciso uma base gerida, com cópias de segurança automáticas.
 fornecedores usam a codificação do sistema por omissão, e em Windows isso é
 WIN1252 — que estraga acentos e rebenta com as migrações deste projeto.
 
-**Decisão de 12/09/2026: o banco vive dentro da Vercel.** O Mateus quer tudo só
+**Estado a 13/09/2026: banco no Supabase `ayaha-crm` (`sjidqzuelheuhopapmff`,
+Frankfurt), ligado à Vercel pela variável `DATABASE_URL`.** Utilizador próprio
+`ayaha_app`, pooler de sessão `aws-0-eu-central-1.pooler.supabase.com:5432`,
+endereço com `?sslmode=require&uselibpqcompat=true` — só `sslmode=require` deixa
+as migrações passar e parte a app no certificado. Não ligar bancos do marketplace
+da Vercel ao projeto sem confirmar que ficam ativos: um recurso suspenso bloqueia
+todos os deploys (`Resource provisioning failed`).
+
+~~**Decisão de 12/09/2026: o banco vive dentro da Vercel.**~~ Revertida a 13/09 a
+pedido do Mateus. O Mateus quer tudo só
 em GitHub + Vercel, sem contas à parte. O banco Supabase original
 (`qyrsnefjlnesvecyenoi`) desapareceu e deixou o site em erro 500; o plano
 gratuito do Supabase já estava no limite de 2 projetos.
