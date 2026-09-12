@@ -14,13 +14,18 @@ preciso uma base gerida, com cópias de segurança automáticas.
 fornecedores usam a codificação do sistema por omissão, e em Windows isso é
 WIN1252 — que estraga acentos e rebenta com as migrações deste projeto.
 
-Opções que funcionam bem para este caso:
+**Decisão de 12/09/2026: o banco vive dentro da Vercel.** O Mateus quer tudo só
+em GitHub + Vercel, sem contas à parte. O banco Supabase original
+(`qyrsnefjlnesvecyenoi`) desapareceu e deixou o site em erro 500; o plano
+gratuito do Supabase já estava no limite de 2 projetos.
 
-| Fornecedor | Notas |
-|---|---|
-| **Supabase** | Plano gratuito chega para começar. Já vem em UTF8. |
-| **Neon** | Bom para Vercel; escala a zero fora de horas. |
-| **Railway** | Simples, mas confirmar a codificação. |
+Criar em: projeto **ayaha-crm** na Vercel → **Storage** → **Create Database** →
+**Neon** → região **Frankfurt** → ligar ao projeto (Production e Preview). A
+Vercel cria sozinha `DATABASE_URL` (pooler, usada pela app) e
+`DATABASE_URL_UNPOOLED` (direta, usada pelas migrações — ver `prisma.config.ts`).
+
+Se já existir um `DATABASE_URL` antigo nas variáveis, **apagá-lo antes**, senão a
+ligação do banco entra em conflito. Neon já vem em UTF8.
 
 Confirmar a codificação depois de criar:
 
@@ -38,28 +43,19 @@ CREATE DATABASE ayaha_crm ENCODING 'UTF8' TEMPLATE template0;
 
 ## 2. Repositório no GitHub
 
-O projeto ainda não tem commits. A partir da pasta:
+O código vive em **`github.com/MatreuzDX/ayaha-maison-123`** (público, por
+regra do Mateus) e o projeto **ayaha-crm** da Vercel está ligado a esse
+repositório. **Publicar é `git push` para `main`** — a Vercel faz o build e põe
+no ar sozinha.
+
+Antes de enviar, confirmar que nenhum segredo vai junto:
 
 ```bash
-git init
-git add .
-git commit -m "AYAHA CRM: fundações, clientes, agenda e catálogo"
+git ls-files | grep -E '(^|/)\.env'
 ```
 
-Antes de enviar, confirmar que o `.env` **não** vai junto:
-
-```bash
-git status --short
-```
-
-Se aparecer `.env` na lista, parar e corrigir o `.gitignore` — esse ficheiro
-tem a palavra-passe da base de dados e a chave de encriptação.
-
-Depois criar o repositório (privado) e enviar:
-
-```bash
-gh repo create ayaha-crm --private --source=. --push
-```
+Só pode aparecer `.env.example`. Ligações e chaves ficam em `.env` e
+`.env.local`, que o `.gitignore` já exclui.
 
 ---
 
@@ -96,19 +92,22 @@ node -e "console.log('CRON_SECRET=' + require('crypto').randomBytes(32).toString
 
 ## 4. Primeiro arranque
 
-O Vercel faz o build automaticamente. Depois é preciso preparar a base uma vez:
+**Não há nada para correr à mão.** O `buildCommand` do `vercel.json` chama
+`scripts/preparar-banco.mjs` antes do `next build`, em cada deploy de produção:
 
-```bash
-npx prisma migrate deploy
-```
+1. `prisma migrate deploy` — aplica as migrações em falta.
+2. O seed, que é idempotente — unidade, 7 serviços a €30, zonas de deslocação,
+   AYAHA Club. **Nunca cria clientes nem equipa inventadas em produção.**
 
-```bash
-npm run db:seed
-```
+Se a migração falhar, o build falha e a Vercel mantém o deploy anterior no ar —
+o código novo nunca chega antes da coluna nova (ver
+`AYAHA-SKILLS/deploy-vercel-seguro`). Deploys de pré-visualização saltam este
+passo, para um ramo experimental não mexer no schema de produção.
 
-O seed cria a unidade, a equipa, os 7 serviços a €30, as zonas de deslocação e
-o AYAHA Club. **Não cria clientes de demonstração em produção** se já existirem
-registos — é idempotente.
+**Conta de administração:** definir `SEED_OWNER_EMAIL` e `SEED_OWNER_PASSWORD`
+(10+ caracteres) nas variáveis e fazer **Redeploy**. Sem elas o site público
+funciona, mas não se cria conta nenhuma — nunca uma palavra-passe por defeito.
+Depois de entrar, seguir a secção 5.
 
 ---
 

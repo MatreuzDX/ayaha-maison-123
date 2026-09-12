@@ -37,6 +37,29 @@ entram aqui** — vão no commit e basta.
 
 ## Setembro
 
+### 12/09/2026 — Site em erro 500: o banco desapareceu; passa a viver na Vercel
+**O que se viu:** a página inicial e a de serviços mostravam "Algo correu mal —
+Não foi possível mostrar esta página" (código `2691905583`). Sobre, FAQ,
+contacto e login abriam, porque não leem da base.
+**Causa:** o site ligava ao Supabase `qyrsnefjlnesvecyenoi`, que deixou de
+existir (`tenant/user ... not found` nos logs da Vercel, 22 ocorrências). Não
+estava em nenhuma das contas Supabase ligadas. O código estava bem.
+**O backup `db_cluster-05-08-2026` não serviu:** só tinha tabelas internas do
+Supabase, nenhuma do site.
+**Decisão do Mateus:** tudo só em **GitHub + Vercel**, sem Supabase. O banco
+passa a ser criado no separador **Storage** da Vercel (Neon, gratuito). O
+Supabase gratuito também já estava no limite de 2 projetos.
+**O que mudou no código:**
+- A Vercel aplica as migrações e o seed sozinha em cada deploy de produção
+  (`scripts/preparar-banco.mjs`). Deixa de haver passos à mão.
+- **Falha de segurança fechada:** o seed criava a Sofia e a Inês — profissionais
+  inventadas — **com a palavra-passe da administradora**. Em produção seriam
+  duas contas falsas com acesso ao CRM. Passam a existir só em demonstração.
+- Sem `SEED_OWNER_PASSWORD`, o seed prepara o site mas não cria conta nenhuma,
+  em vez de falhar o deploy.
+**Dados:** os clientes e marcações que existissem no banco antigo perderam-se
+com ele. O site recomeça do zero, como o Mateus já tinha pedido a 06/09.
+
 ### 06/09/2026 — Arranque limpo: o seed deixa de inventar 20 clientes
 **Commit:** `d69d2b4`
 **O que mudou:** ao semear uma base vazia, o sistema criava sempre 20 clientes

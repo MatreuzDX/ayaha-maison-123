@@ -96,19 +96,24 @@ async function main() {
   console.log(`✓ Unidade: ${unit.name}`);
 
   // ── Utilizadores e profissionais ───────────────────────────
+  // Dados de demonstração (equipa e clientes inventadas) só entram se pedidos.
+  const wantsDemo =
+    process.env.SEED_DEMO_CLIENTS === "true" || process.env.DEMO_MODE === "true";
+
+  // Sem palavra-passe não se cria conta nenhuma — nunca uma por defeito. O
+  // resto (catálogo, zonas, AYAHA Club) entra na mesma, para o site público
+  // funcionar logo; a conta de administração aparece no deploy seguinte a
+  // SEED_OWNER_EMAIL e SEED_OWNER_PASSWORD serem definidas.
   const ownerPassword = process.env.SEED_OWNER_PASSWORD;
-  if (!ownerPassword) {
-    throw new Error(
-      "SEED_OWNER_PASSWORD não definida no .env.\n" +
-        "Defina uma palavra-passe forte (>= 10 caracteres) antes de semear.\n" +
-        "Nunca use uma palavra-passe por defeito num sistema com dados de clientes.",
-    );
-  }
   // Em modo demonstração aceita-se uma palavra-passe curta para testes.
   // Fora dele exigem-se 10 caracteres, como em qualquer conta real.
   const isDemo = process.env.DEMO_MODE === "true";
   const minLength = isDemo ? 6 : 10;
-  if (ownerPassword.length < minLength) {
+  if (!ownerPassword) {
+    console.log(
+      "⚠ SEED_OWNER_PASSWORD não definida — conta de administração não criada.\n",
+    );
+  } else if (ownerPassword.length < minLength) {
     throw new Error(
       `SEED_OWNER_PASSWORD tem de ter pelo menos ${minLength} caracteres.`,
     );
@@ -117,13 +122,16 @@ async function main() {
     console.log("⚠ Modo DEMONSTRAÇÃO — credenciais fracas permitidas.\n");
   }
 
-  const team = [
-    { email: process.env.SEED_OWNER_EMAIL ?? "ayaha@ayahamaison.com", name: "Ayaha", role: "OWNER" as const, color: "#C4A870", contract: "OWNER" as const },
+  const owner = { email: process.env.SEED_OWNER_EMAIL ?? "ayaha@ayahamaison.com", name: "Ayaha", role: "OWNER" as const, color: "#C4A870", contract: "OWNER" as const };
+  // Sofia e Inês são inventadas e entrariam com a palavra-passe da dona. Em
+  // produção seriam duas contas falsas com acesso ao CRM — só em demonstração.
+  const demoStaff = [
     { email: "sofia@ayahamaison.com", name: "Sofia Marques", role: "PROFESSIONAL" as const, color: "#C99A93", contract: "FREELANCER" as const },
     { email: "ines@ayahamaison.com", name: "Inês Ramos", role: "PROFESSIONAL" as const, color: "#B3A292", contract: "FREELANCER" as const },
   ];
+  const team = ownerPassword ? [owner, ...(wantsDemo ? demoStaff : [])] : [];
 
-  const passwordHash = await argonHash(ownerPassword, ARGON);
+  const passwordHash = ownerPassword ? await argonHash(ownerPassword, ARGON) : "";
   const professionals: { id: string; name: string }[] = [];
 
   for (const member of team) {
@@ -172,7 +180,7 @@ async function main() {
       });
     }
   }
-  console.log(`✓ Equipa: ${professionals.map((p) => p.name).join(", ")}`);
+  console.log(`✓ Equipa: ${professionals.map((p) => p.name).join(", ") || "(nenhuma conta criada)"}`);
 
   // ── Zonas de deslocação ────────────────────────────────────
   const zones: { id: string; name: string }[] = [];
@@ -367,8 +375,8 @@ async function main() {
   // clientes: 20 nomes inventados na base de um negócio a sério são mentira
   // à equipa e sujam relatórios, marketing e fidelidade desde o primeiro dia.
   // Ver AYAHA-SKILLS/honestidade-no-produto.
-  const wantsDemoClients =
-    process.env.SEED_DEMO_CLIENTS === "true" || process.env.DEMO_MODE === "true";
+  // As clientes inventadas precisam de profissionais a quem ficar atribuídas.
+  const wantsDemoClients = wantsDemo && professionals.length > 0;
   const existingClients = await prisma.client.count({ where: { unitId: unit.id } });
   if (!wantsDemoClients) {
     console.log(
@@ -476,7 +484,7 @@ async function main() {
   }
 
   console.log("\nSeed concluído.");
-  console.log(`Entrar com: ${team[0]!.email}`);
+  if (team[0]) console.log(`Entrar com: ${team[0].email}`);
 }
 
 /**

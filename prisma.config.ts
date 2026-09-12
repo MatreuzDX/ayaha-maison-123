@@ -9,8 +9,9 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    // Em Supabase, apontar DATABASE_URL à ligação DIRETA (porta 5432) para as
-    // migrações. A app em runtime pode usar o pooler (porta 6543).
-    url: env("DATABASE_URL"),
+    // As migrações precisam da ligação DIRETA à base, não do pooler. O banco
+    // da Vercel (Neon) dá as duas: DATABASE_URL (pooler, usada pela app) e
+    // DATABASE_URL_UNPOOLED (direta). Localmente só existe DATABASE_URL.
+    url: process.env.DATABASE_URL_UNPOOLED || env("DATABASE_URL"),
   },
 });
