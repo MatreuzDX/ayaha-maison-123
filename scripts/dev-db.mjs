@@ -9,7 +9,8 @@
  *   node scripts/dev-db.mjs start   → arranca e fica a correr
  *   node scripts/dev-db.mjs stop    → pára
  *
- * Em produção usa-se Supabase; isto é só para desenvolver e testar.
+ * Em produção usa-se o banco da Vercel (Storage → Neon); isto é só para
+ * desenvolver e testar.
  */
 
 import { existsSync, rmSync } from "node:fs";

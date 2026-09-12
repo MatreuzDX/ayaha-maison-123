@@ -104,6 +104,17 @@ o código novo nunca chega antes da coluna nova (ver
 `AYAHA-SKILLS/deploy-vercel-seguro`). Deploys de pré-visualização saltam este
 passo, para um ramo experimental não mexer no schema de produção.
 
+**Sem banco nenhum** (`DATABASE_URL` por definir), o deploy segue com um aviso:
+o site público mostra o catálogo base de `src/lib/catalog.ts` e o login/CRM
+não funcionam até o banco existir.
+
+**Com `DATABASE_URL` a apontar para um banco que não responde**, o build só segue
+se este deploy **não trouxer migrações novas** desde o último deploy de produção
+bem-sucedido (compara `prisma/migrations` com `VERCEL_GIT_PREVIOUS_SHA`). Se
+trouxer, ou se não der para confirmar, o build **para** — é o que impede código
+novo de ir para o ar à frente do banco. Uma migração que falhe com o banco a
+responder (erro de SQL) para sempre o build.
+
 **Conta de administração:** definir `SEED_OWNER_EMAIL` e `SEED_OWNER_PASSWORD`
 (10+ caracteres) nas variáveis e fazer **Redeploy**. Sem elas o site público
 funciona, mas não se cria conta nenhuma — nunca uma palavra-passe por defeito.

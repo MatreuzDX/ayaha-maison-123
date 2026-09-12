@@ -14,6 +14,12 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, type Prisma } from "@prisma/client";
 import { hash as argonHash } from "@node-rs/argon2";
+import {
+  CATALOG_SERVICES,
+  LOYALTY_PROGRAM,
+  LOYALTY_REWARDS,
+  SERVICE_PRICE_CENTS,
+} from "../src/lib/catalog";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL não definida.");
@@ -25,20 +31,11 @@ const prisma = new PrismaClient({
 const ARGON = { memoryCost: 19_456, timeCost: 2, parallelism: 1 } as const;
 
 // ─────────────────────────────────────────────────────────────
-// CATÁLOGO REAL — confirmado pela fundadora em 2026-07-27
-// Sete serviços, todos a €30. Não é erro: é decisão de negócio.
+// CATÁLOGO REAL — os 7 serviços a €30 e o AYAHA Club vivem em
+// src/lib/catalog.ts, partilhados com o site público (que os mostra quando
+// o banco não responde). Uma fonte só: o site nunca diz uma coisa e o banco
+// outra.
 // ─────────────────────────────────────────────────────────────
-const SERVICES = [
-  { name: "Fio a Fio", slug: "fio-a-fio", durationMin: 90, tagline: "O clássico. Um fio por cada cílio natural." },
-  { name: "Volume Brasileiro", slug: "volume-brasileiro", durationMin: 120, tagline: "Volume natural e leve, efeito preenchido." },
-  { name: "Volume Russo", slug: "volume-russo", durationMin: 120, tagline: "Máximo volume, leques finos e densos." },
-  { name: "Volume Egípcio", slug: "volume-egipcio", durationMin: 120, tagline: "Efeito dramático com desenho marcado." },
-  { name: "Fox Eyes", slug: "fox-eyes", durationMin: 120, tagline: "Olhar alongado e elevado nas pontas." },
-  { name: "Efeito Gatinho", slug: "efeito-gatinho", durationMin: 90, tagline: "Cantos externos alongados, olhar felino." },
-  { name: "Efeito Esquilo", slug: "efeito-esquilo", durationMin: 90, tagline: "Elevação no terço médio, olhar aberto." },
-] as const;
-
-const PRICE_CENTS = 3000; // €30 — igual em todos os serviços
 const MAINTENANCE_GAP_DAYS = 21;
 
 // ─────────────────────────────────────────────────────────────
@@ -211,7 +208,7 @@ async function main() {
   });
 
   const serviceIds: string[] = [];
-  for (const [i, s] of SERVICES.entries()) {
+  for (const [i, s] of CATALOG_SERVICES.entries()) {
     const service = await prisma.service.upsert({
       where: { unitId_slug: { unitId: unit.id, slug: s.slug } },
       update: {},
@@ -221,10 +218,14 @@ async function main() {
         name: s.name,
         slug: s.slug,
         tagline: s.tagline,
+        imageUrl: s.imageUrl,
+        highlights: [...s.highlights],
+        longDescription: [...s.longDescription],
+        displayCategory: s.displayCategory,
         durationMin: s.durationMin,
         setupMin: 15,
         teardownMin: 5,
-        priceCents: PRICE_CENTS,
+        priceCents: SERVICE_PRICE_CENTS,
         // IVA a 0: a fundadora está muito provavelmente na isenção do art. 53.º
         // do CIVA. Confirmar com o contabilista (Anexo A, ponto 1).
         vatBps: 0,
@@ -234,6 +235,24 @@ async function main() {
         sortOrder: i,
       },
     });
+    // Bancos semeados antes de o catálogo ter texto ficaram com a parte
+    // pública vazia (serviço sem foto nem descrição no site). Preenche só
+    // esse caso — nunca por cima do que a equipa já editou no CRM.
+    if (
+      !service.imageUrl &&
+      service.highlights.length === 0 &&
+      service.longDescription.length === 0
+    ) {
+      await prisma.service.update({
+        where: { id: service.id },
+        data: {
+          imageUrl: s.imageUrl,
+          highlights: [...s.highlights],
+          longDescription: [...s.longDescription],
+          displayCategory: service.displayCategory ?? s.displayCategory,
+        },
+      });
+    }
     serviceIds.push(service.id);
   }
   console.log(`✓ ${serviceIds.length} serviços a €30`);
@@ -297,31 +316,15 @@ async function main() {
   const program = await prisma.loyaltyProgram.upsert({
     where: { unitId: unit.id },
     update: {},
-    create: {
-      unitId: unit.id,
-      name: "AYAHA Club",
-      stampsRequired: 5,
-      autoRestart: true,
-      rewardValidDays: 180,
-      termsText:
-        "A cada atendimento concluído recebe 1 carimbo. Ao completar 5 carimbos " +
-        "escolhe uma de três recompensas. O cartão recomeça depois do resgate.",
-    },
+    create: { unitId: unit.id, ...LOYALTY_PROGRAM },
   });
-
-  const REWARDS = [
-    { name: "Desconto de €15", description: "€15 de desconto no próximo atendimento.", kind: "DISCOUNT_FIXED" as const, valueCents: 1500 },
-    // ⚠️ Sem valor económico com preço único de €30 — ver spec 18.1 e Anexo A ponto 9.
-    { name: "Upgrade de técnica", description: "Upgrade de técnica gratuito no próximo atendimento.", kind: "SERVICE_UPGRADE" as const, valueCents: 0 },
-    { name: "Gift Card de €15", description: "Gift card de €15 para oferecer a uma amiga.", kind: "GIFT_CARD" as const, valueCents: 1500 },
-  ];
 
   const existingRewards = await prisma.reward.count({
     where: { programId: program.id },
   });
   if (existingRewards === 0) {
     await prisma.reward.createMany({
-      data: REWARDS.map((r, i) => ({ ...r, programId: program.id, sortOrder: i })),
+      data: LOYALTY_REWARDS.map((r, i) => ({ ...r, programId: program.id, sortOrder: i })),
     });
   }
   console.log("✓ AYAHA Club com 3 recompensas");
@@ -421,8 +424,8 @@ async function main() {
           visitCount > 0
             ? new Date(now - (daysSinceLast + visitCount * 21) * 86_400_000)
             : null,
-        lifetimeValueCents: visitCount * PRICE_CENTS,
-        avgTicketCents: visitCount > 0 ? PRICE_CENTS : 0,
+        lifetimeValueCents: visitCount * SERVICE_PRICE_CENTS,
+        avgTicketCents: visitCount > 0 ? SERVICE_PRICE_CENTS : 0,
         avgIntervalDays: visitCount > 1 ? 21 : null,
         marketingOptIn: i % 3 !== 0,
         marketingOptInAt: i % 3 !== 0 ? new Date(now - 90 * 86_400_000) : null,

@@ -81,8 +81,8 @@ abaixo é para perceberes **porquê** cada uma está lá.
 
 | Serviço | Para quê | Onde se configura |
 |---|---|---|
-| **Supabase** | Postgres de produção | `DATABASE_URL` |
-| **Vercel** | Alojamento e deploy | `npx vercel deploy --prod` |
+| **Vercel Storage (Neon)** | Postgres de produção (desde 12/09/2026; antes era Supabase) | `DATABASE_URL`, criada pela Vercel |
+| **Vercel** | Alojamento e deploy | `git push` para `main` no GitHub `MatreuzDX/ayaha-maison-123` |
 | **Google Cloud** | Login com Google (OAuth) | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` |
 | **WhatsApp** | Canal principal com clientes | número em `src/lib/site-config.ts` |
 
@@ -100,7 +100,7 @@ O que esteve realmente em uso neste projeto, e para quê:
 | Ligação | Usada para | Precisa de autorização? |
 |---|---|---|
 | **Vercel** | ver deploys, registos de erro em produção, definições de proteção | já ligada |
-| **Supabase** | consultar e migrar a base de dados | já ligada |
+| ~~Supabase~~ | já não é usado neste projeto (12/09/2026) | — |
 | **Canva** | gerar imagens da marca (logo, gift card) | sim — pelas definições de conectores |
 | **Google Agenda** | sincronizar marcações (ainda por implementar) | sim |
 

@@ -59,6 +59,22 @@ Supabase gratuito também já estava no limite de 2 projetos.
   em vez de falhar o deploy.
 **Dados:** os clientes e marcações que existissem no banco antigo perderam-se
 com ele. O site recomeça do zero, como o Mateus já tinha pedido a 06/09.
+**E para não dar erro de novo (mesmo dia, pedido do Mateus):**
+- **O site público já não cai sem banco.** Início, serviços, cada serviço,
+  fidelidade e sitemap mostram o catálogo base (7 serviços a €30 com textos e
+  fotos, AYAHA Club) se o banco não responder. Login e CRM continuam a precisar
+  do banco. O erro fica nos logs da Vercel com `banco indisponível`.
+- **Uma só fonte para o catálogo:** `src/lib/catalog.ts`. O seed grava-o, o
+  site mostra-o quando não há banco — nunca dizem coisas diferentes.
+- **Serviços num banco novo já nascem com foto, destaques e descrição.** Antes
+  isso vinha de `scripts/preencher-catalogo-publico.mjs`, que corria à mão e
+  nunca chegava a um banco novo; foi apagado.
+- **Sem `DATABASE_URL` o deploy segue** (com aviso) em vez de falhar. **Com o
+  banco a não responder**, também segue — mas só se o deploy não trouxer
+  migrações novas; se trouxer, para, para o código nunca ir à frente do banco.
+  Foi isto que deixou pôr o site de pé sem esperar pelo banco novo.
+- **Supabase fora do código:** `.env.example`, comentários e guia de stack.
+  O que ainda liga ao Supabase é só a variável `DATABASE_URL` na Vercel.
 
 ### 06/09/2026 — Arranque limpo: o seed deixa de inventar 20 clientes
 **Commit:** `d69d2b4`

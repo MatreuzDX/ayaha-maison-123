@@ -13,11 +13,16 @@
  * depende dela (ver AYAHA-SKILLS/deploy-vercel-seguro). Se falhar, o build
  * falha e a Vercel mantém o deploy anterior no ar.
  *
+ * Quando o banco não responde, o deploy só segue se for seguro — ver
+ * `podeSeguirSemBanco()`. O site público aguenta-se sem banco (mostra o
+ * catálogo base, `src/lib/catalog.ts`); o que não pode acontecer é código que
+ * precisa de uma migração nova ir para o ar sem ela.
+ *
  * Só corre em produção. Deploys de pré-visualização partilham o mesmo banco,
  * e um ramo experimental não pode mexer no schema de produção.
  */
 
-import { execSync } from "node:child_process";
+import { execSync, spawnSync } from "node:child_process";
 
 const naVercel = Boolean(process.env.VERCEL);
 const ambiente = process.env.VERCEL_ENV;
@@ -25,14 +30,6 @@ const ambiente = process.env.VERCEL_ENV;
 if (naVercel && ambiente !== "production") {
   console.log(`preparar-banco: ambiente "${ambiente}" — migrações e seed saltados.`);
   process.exit(0);
-}
-
-if (!process.env.DATABASE_URL) {
-  console.error(
-    "\npreparar-banco: DATABASE_URL não está definida.\n" +
-      "Na Vercel: projeto → Storage → Create Database, e ligar ao projeto.\n",
-  );
-  process.exit(1);
 }
 
 if (process.env.DEMO_MODE === "true" || process.env.SEED_DEMO_CLIENTS === "true") {
@@ -43,11 +40,84 @@ if (process.env.DEMO_MODE === "true" || process.env.SEED_DEMO_CLIENTS === "true"
   process.exit(1);
 }
 
-function correr(titulo, comando) {
-  console.log(`\npreparar-banco: ${titulo}`);
-  execSync(comando, { stdio: "inherit" });
+// Sem banco nenhum não há schema com que o código possa ficar desalinhado, por
+// isso o deploy segue: o site público mostra o catálogo base e o CRM avisa que
+// falta o banco. Uma variável que falta não deve partir o build (ver
+// AYAHA-SKILLS/deploy-vercel-seguro §5).
+if (!process.env.DATABASE_URL) {
+  console.warn(
+    "\n⚠ preparar-banco: DATABASE_URL não está definida — migrações e seed saltados.\n" +
+      "  O site público vai mostrar o catálogo base; login e CRM não funcionam.\n" +
+      "  Resolver: Vercel → projeto → Storage → Create Database → ligar ao projeto → Redeploy.\n",
+  );
+  process.exit(0);
 }
 
-correr("a aplicar migrações", "npx prisma migrate deploy");
-correr("a semear dados base", "npx tsx prisma/seed.ts");
+/** Erros de "não consigo chegar ao banco" — não de SQL nem de migração. */
+const ERRO_DE_LIGACAO =
+  /P1001|P1017|ENOTFOUND|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|tenant\/user .* not found|Can't reach database server/i;
+
+/**
+ * Com o banco inalcançável, seguir só se este deploy não trouxer migrações
+ * novas em relação ao último deploy de produção bem-sucedido
+ * (`VERCEL_GIT_PREVIOUS_SHA`). Se não der para confirmar — variável em falta,
+ * commit anterior fora do clone, git indisponível — não segue.
+ */
+function podeSeguirSemBanco() {
+  const anterior = process.env.VERCEL_GIT_PREVIOUS_SHA;
+  if (!anterior) {
+    return { sim: false, porque: "sem VERCEL_GIT_PREVIOUS_SHA para comparar migrações" };
+  }
+  const existe = spawnSync("git", ["cat-file", "-e", `${anterior}^{commit}`], { encoding: "utf8" });
+  if (existe.status !== 0) {
+    return { sim: false, porque: `o commit anterior ${anterior.slice(0, 7)} não está no clone` };
+  }
+  const diff = spawnSync(
+    "git",
+    ["diff", "--name-only", anterior, "HEAD", "--", "prisma/migrations"],
+    { encoding: "utf8" },
+  );
+  if (diff.status !== 0) {
+    return { sim: false, porque: "git diff às migrações falhou" };
+  }
+  const novas = diff.stdout.trim();
+  if (novas) {
+    return { sim: false, porque: `este deploy traz migrações novas:\n${novas}` };
+  }
+  return { sim: true, porque: `nenhuma migração nova desde ${anterior.slice(0, 7)}` };
+}
+
+console.log("\npreparar-banco: a aplicar migrações");
+const migrar = spawnSync("npx prisma migrate deploy", { shell: true, encoding: "utf8" });
+process.stdout.write(migrar.stdout ?? "");
+process.stderr.write(migrar.stderr ?? "");
+
+if (migrar.status !== 0) {
+  const saida = `${migrar.stdout}\n${migrar.stderr}`;
+  if (!ERRO_DE_LIGACAO.test(saida)) {
+    console.error("\npreparar-banco: a migração falhou — build parado.\n");
+    process.exit(1);
+  }
+
+  const decisao = podeSeguirSemBanco();
+  if (!decisao.sim) {
+    console.error(
+      "\npreparar-banco: o banco não responde e não é seguro seguir — build parado.\n" +
+        `  Motivo: ${decisao.porque}\n` +
+        "  Resolver: ligar um banco que exista (Vercel → Storage) ou apagar a DATABASE_URL morta.\n",
+    );
+    process.exit(1);
+  }
+
+  console.warn(
+    "\n⚠ preparar-banco: o banco não responde — migrações e seed saltados, o deploy segue.\n" +
+      `  Seguro porque: ${decisao.porque}.\n` +
+      "  O site público vai mostrar o catálogo base; login e CRM não funcionam.\n" +
+      "  Resolver: Vercel → projeto → Storage → Create Database → ligar ao projeto → Redeploy.\n",
+  );
+  process.exit(0);
+}
+
+console.log("\npreparar-banco: a semear dados base");
+execSync("npx tsx prisma/seed.ts", { stdio: "inherit" });
 console.log("\npreparar-banco: banco pronto.\n");

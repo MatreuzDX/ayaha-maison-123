@@ -7,7 +7,46 @@
  * público (`isActive`) — nunca custos, nunca dados de outra cliente.
  */
 
+import {
+  CATALOG_SERVICES,
+  LOYALTY_PROGRAM,
+  LOYALTY_REWARDS,
+  SERVICE_PRICE_CENTS,
+} from "@/lib/catalog";
 import { prisma } from "./db";
+
+/**
+ * Lê do banco e, se ele não responder, devolve o catálogo base.
+ *
+ * O site público não pode cair num ecrã de erro por causa do banco: a 12/09/2026
+ * a página inicial e a de serviços deram 500 durante horas porque o banco de
+ * produção desapareceu. Quem visita continua a ver o que a AYAHA oferece e o
+ * botão do WhatsApp. O erro fica nos logs, para ninguém achar que está tudo bem.
+ */
+async function fromDbOr<T>(what: string, read: () => Promise<T>, fallback: () => T): Promise<T> {
+  try {
+    return await read();
+  } catch (error) {
+    console.error(`[public-content] ${what}: banco indisponível — a mostrar o catálogo base.`, error);
+    return fallback();
+  }
+}
+
+function catalogServices(): PublicService[] {
+  return CATALOG_SERVICES.map((s) => ({
+    slug: s.slug,
+    name: s.name,
+    tagline: s.tagline,
+    description: "",
+    longDescription: [...s.longDescription],
+    priceCents: SERVICE_PRICE_CENTS,
+    priceOnRequest: false,
+    durationMin: s.durationMin,
+    imageUrl: s.imageUrl,
+    highlights: [...s.highlights],
+    category: s.displayCategory,
+  }));
+}
 
 async function getUnitId(): Promise<string> {
   const slug = process.env.DEFAULT_UNIT_SLUG ?? "benfica";
@@ -63,22 +102,34 @@ function toPublicService(s: {
 }
 
 export async function listPublicServices(): Promise<PublicService[]> {
-  const unitId = await getUnitId();
-  const services = await prisma.service.findMany({
-    where: { unitId, isActive: true, deletedAt: null },
-    orderBy: { sortOrder: "asc" },
-  });
-  return services.map(toPublicService);
+  return fromDbOr(
+    "listPublicServices",
+    async () => {
+      const unitId = await getUnitId();
+      const services = await prisma.service.findMany({
+        where: { unitId, isActive: true, deletedAt: null },
+        orderBy: { sortOrder: "asc" },
+      });
+      return services.map(toPublicService);
+    },
+    catalogServices,
+  );
 }
 
 export async function getPublicServiceBySlug(
   slug: string,
 ): Promise<PublicService | null> {
-  const unitId = await getUnitId();
-  const service = await prisma.service.findFirst({
-    where: { unitId, slug, isActive: true, deletedAt: null },
-  });
-  return service ? toPublicService(service) : null;
+  return fromDbOr(
+    "getPublicServiceBySlug",
+    async () => {
+      const unitId = await getUnitId();
+      const service = await prisma.service.findFirst({
+        where: { unitId, slug, isActive: true, deletedAt: null },
+      });
+      return service ? toPublicService(service) : null;
+    },
+    () => catalogServices().find((s) => s.slug === slug) ?? null,
+  );
 }
 
 // ── Programa de fidelidade ───────────────────────────────────
@@ -103,27 +154,43 @@ export interface PublicLoyaltyProgram {
  * programa estiver desligado; nesse caso a página não deve aparecer.
  */
 export async function getPublicLoyaltyProgram(): Promise<PublicLoyaltyProgram | null> {
-  const unitId = await getUnitId();
-  const program = await prisma.loyaltyProgram.findUnique({
-    where: { unitId },
-    include: {
-      rewards: { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
+  return fromDbOr(
+    "getPublicLoyaltyProgram",
+    async () => {
+      const unitId = await getUnitId();
+      const program = await prisma.loyaltyProgram.findUnique({
+        where: { unitId },
+        include: {
+          rewards: { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
+        },
+      });
+
+      if (!program || !program.isActive) return null;
+
+      return {
+        name: program.name,
+        stampsRequired: program.stampsRequired,
+        termsText: program.termsText,
+        rewardValidDays: program.rewardValidDays,
+        rewards: program.rewards.map((r) => ({
+          name: r.name,
+          description: r.description ?? "",
+          valueCents: r.valueCents,
+        })),
+      };
     },
-  });
-
-  if (!program || !program.isActive) return null;
-
-  return {
-    name: program.name,
-    stampsRequired: program.stampsRequired,
-    termsText: program.termsText,
-    rewardValidDays: program.rewardValidDays,
-    rewards: program.rewards.map((r) => ({
-      name: r.name,
-      description: r.description ?? "",
-      valueCents: r.valueCents,
-    })),
-  };
+    () => ({
+      name: LOYALTY_PROGRAM.name,
+      stampsRequired: LOYALTY_PROGRAM.stampsRequired,
+      termsText: LOYALTY_PROGRAM.termsText,
+      rewardValidDays: LOYALTY_PROGRAM.rewardValidDays,
+      rewards: LOYALTY_REWARDS.map((r) => ({
+        name: r.name,
+        description: r.description,
+        valueCents: r.valueCents,
+      })),
+    }),
+  );
 }
 
 // ── Depoimentos e galeria ────────────────────────────────────
