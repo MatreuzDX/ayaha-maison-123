@@ -72,7 +72,12 @@ com ele. O site recomeça do zero, como o Mateus já tinha pedido a 06/09.
 - **Sem `DATABASE_URL` o deploy segue** (com aviso) em vez de falhar. **Com o
   banco a não responder**, também segue — mas só se o deploy não trouxer
   migrações novas; se trouxer, para, para o código nunca ir à frente do banco.
-  Foi isto que deixou pôr o site de pé sem esperar pelo banco novo.
+  Exceção: se o servidor responder que o banco **não existe** (`tenant/user ...
+  not found`, `database does not exist`), segue como se não houvesse banco —
+  um banco apagado não tem schema que possa ficar atrás do código. Falhas que
+  podem ser passageiras (tempo esgotado, ligação recusada) continuam a parar.
+  Foi isto que deixou pôr o site de pé sem esperar pelo banco novo, sem apagar
+  a variável à mão.
 - **Supabase fora do código:** `.env.example`, comentários e guia de stack.
   O que ainda liga ao Supabase é só a variável `DATABASE_URL` na Vercel.
 
@@ -252,11 +257,11 @@ o ar. O que estava mal está escrito em
 | # | O quê | Gravidade |
 |---|---|---|
 | 1 | **10 imagens do site são stock do Unsplash**, carregadas do servidor deles em cada visita. Num negócio de imagem, o site mostra olhos que não são de clientes da AYAHA. Se o Unsplash falhar ou mudar as regras, o site fica sem imagens. | 🔴 alta |
-| 2 | **`engines` não está definido** no `package.json`. A Vercel usa Node 24.x; outro alojamento pode escolher outra versão e partir o build. | 🟠 média (crítica ao migrar) |
+| 2 | ~~**`engines` não está definido** no `package.json`~~ — **resolvido a 12/09/2026:** `"engines": { "node": "24.x" }`, igual à Vercel. | ✅ |
 | 3 | **Não há rotas `/api/cron/*`**, embora a especificação (§ do `CRON_SECRET`) as preveja. Os lembretes de 48h/24h/2h **aparecem no CRM**, mas **nada é enviado automaticamente** à cliente. | 🟠 média |
 | 4 | **`output: "standalone"` não está no `next.config.ts`.** Não é preciso na Vercel; é o que torna o auto-alojamento simples (imagem Docker pequena). | 🟡 baixa |
 | 5 | Existe um projeto Supabase `INACTIVE` (`iqvkgazpyouozhwgdick`) que **não** é o da produção. Convém perceber se é lixo. | 🟡 baixa |
-| 6 | `npm run db:reset` usa `--skip-seed`, que **não existe no Prisma 7**. O script falha se alguém o correr. | 🟡 baixa |
+| 6 | ~~`npm run db:reset` usa `--skip-seed`~~ — **errado, corrigido a 12/09/2026.** O script é só `prisma migrate reset` e funciona; o `--skip-seed` (que não existe no Prisma 7) fui eu que o tentei à mão. | — |
 
 ## Sair da Vercel — o que está a favor
 

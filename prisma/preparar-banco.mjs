@@ -58,6 +58,18 @@ const ERRO_DE_LIGACAO =
   /P1001|P1017|ENOTFOUND|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|tenant\/user .* not found|Can't reach database server/i;
 
 /**
+ * O servidor respondeu, e disse que o banco NÃO EXISTE — não é uma falha
+ * passageira. Um banco que não existe não tem schema que possa ficar atrás do
+ * código, por isso é o mesmo caso que não haver DATABASE_URL: segue com aviso.
+ *
+ * Só entram aqui respostas definitivas. `ENOTFOUND` sozinho fica de fora (uma
+ * falha de DNS pode ser passageira); `tenant/user ... not found` é o pooler do
+ * Supabase a dizer que o projeto foi apagado — foi o que aconteceu a 12/09/2026.
+ */
+const BANCO_INEXISTENTE =
+  /tenant\/user .* not found|P1003|database ".*" does not exist/i;
+
+/**
  * Com o banco inalcançável, seguir só se este deploy não trouxer migrações
  * novas em relação ao último deploy de produção bem-sucedido
  * (`VERCEL_GIT_PREVIOUS_SHA`). Se não der para confirmar — variável em falta,
@@ -97,6 +109,17 @@ if (migrar.status !== 0) {
   if (!ERRO_DE_LIGACAO.test(saida)) {
     console.error("\npreparar-banco: a migração falhou — build parado.\n");
     process.exit(1);
+  }
+
+  if (BANCO_INEXISTENTE.test(saida)) {
+    console.warn(
+      "\n⚠ preparar-banco: o banco configurado NÃO EXISTE — migrações e seed saltados, o deploy segue.\n" +
+        "  A DATABASE_URL aponta para um banco apagado. O site público vai mostrar o catálogo base;\n" +
+        "  login e CRM não funcionam.\n" +
+        "  Resolver: Vercel → Settings → Environment Variables → apagar a DATABASE_URL morta,\n" +
+        "  e Storage → Create Database → ligar ao projeto → Redeploy.\n",
+    );
+    process.exit(0);
   }
 
   const decisao = podeSeguirSemBanco();

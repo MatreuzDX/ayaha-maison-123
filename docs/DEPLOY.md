@@ -115,6 +115,11 @@ trouxer, ou se não der para confirmar, o build **para** — é o que impede có
 novo de ir para o ar à frente do banco. Uma migração que falhe com o banco a
 responder (erro de SQL) para sempre o build.
 
+**Exceção — o banco não existe.** Se o servidor responder que o banco foi apagado
+(`tenant/user ... not found` do Supabase, `P1003`, `database ... does not exist`),
+o build segue com aviso, como sem `DATABASE_URL`: não há schema que possa ficar
+atrás do código. `ENOTFOUND` sozinho não conta — uma falha de DNS pode passar.
+
 **Conta de administração:** definir `SEED_OWNER_EMAIL` e `SEED_OWNER_PASSWORD`
 (10+ caracteres) nas variáveis e fazer **Redeploy**. Sem elas o site público
 funciona, mas não se cria conta nenhuma — nunca uma palavra-passe por defeito.
