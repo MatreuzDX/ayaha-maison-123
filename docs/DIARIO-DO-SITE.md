@@ -37,6 +37,19 @@ entram aqui** — vão no commit e basta.
 
 ## Setembro
 
+### 13/09/2026 — Contas de cliente entram logo, sem esperar aprovação
+**O que mudou:** quem cria conta no site — por e-mail ou com Google — entra
+logo no portal: marcações, cartão AYAHA Club, benefícios. Deixa de aparecer o
+ecrã "A sua conta está a aguardar aprovação da equipa AYAHA MAISON".
+**Porquê:** decisão do Mateus. Ao testar o registo com Google, ficou preso
+nesse ecrã e achou que afastava as clientes logo à entrada.
+**O que se perde:** até aqui, uma ficha nova (telefone nunca visto) só tinha
+acesso depois de a equipa confirmar quem era. Agora qualquer pessoa que se
+registe pode pedir marcações online de imediato.
+**O que fica:** a equipa continua a poder cortar o acesso a uma cliente no CRM
+("Remover acesso"), e o portal continua a respeitar isso. As contas que
+estavam pendentes foram aprovadas.
+
 ### 13/09/2026 — Fotografias reais, login com Google de volta, contas de teste
 **O que mudou:**
 - **Fotografias de banco de imagens fora do site.** Havia 14 (Unsplash): no

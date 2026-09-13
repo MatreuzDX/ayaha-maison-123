@@ -78,12 +78,11 @@ export async function registerClient(input: {
       where: { unitId: input.unitId, phone, deletedAt: null },
     });
 
-    // Telefone já conhecido da equipa → é alguém que já é cliente, entra
-    // logo aprovada. Ficha nova (nunca vista) → fica pendente até a equipa
-    // aprovar; é o que impede qualquer pessoa de se registar e ter acesso
-    // imediato a marcações sem a equipa saber quem é.
-    const isNewClient = !client;
-
+    // A conta nasce sempre aprovada — decisão do Mateus a 13/09/2026: esperar
+    // pela equipa depois de criar conta afastava as clientes logo à entrada.
+    // Até aí, fichas novas ficavam pendentes. A equipa continua a poder cortar
+    // o acesso no CRM ("Remover acesso"), e as páginas do portal continuam a
+    // exigir `approvedAt` para esse caso.
     if (!client) {
       client = await tx.client.create({
         data: {
@@ -106,7 +105,7 @@ export async function registerClient(input: {
         clientId: client.id,
         email,
         passwordHash,
-        approvedAt: isNewClient ? null : new Date(),
+        approvedAt: new Date(),
       },
     });
 
@@ -296,8 +295,7 @@ export async function completeGoogleSignup(input: {
       where: { unitId: input.unitId, phone, deletedAt: null },
     });
 
-    const isNewClient = !client;
-
+    // Nasce aprovada, como no registo por e-mail (ver `registerClient`).
     if (!client) {
       client = await tx.client.create({
         data: {
@@ -319,7 +317,7 @@ export async function completeGoogleSignup(input: {
         clientId: client.id,
         email,
         googleId: input.googleId,
-        approvedAt: isNewClient ? null : new Date(),
+        approvedAt: new Date(),
       },
     });
 
